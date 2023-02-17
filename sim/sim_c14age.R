@@ -95,10 +95,10 @@ cfit.model <- compileNimble(fit.model)
 conf <- configureMCMC(fit.model)
 MCMC <- buildMCMC(conf)
 cMCMC <- compileNimble(MCMC)
-results <- runMCMC(cMCMC, niter = 100000,nchains=3, thin=5,nburnin = 50000,samplesAsCodaMCMC = T)
+results <- runMCMC(cMCMC, niter = 50000,nchains=3, thin=5,nburnin = 25000,samplesAsCodaMCMC = T)
 
 # Diagnostic and Posterior Plots ----
-coda::gelman.diag(results)
+coda::gelman.diag(results)[[1]][1:4,]
 res  <- do.call(rbind.data.frame,results)
 par(mfrow=c(2,2))
 postHPDplot(res[,'r'])
