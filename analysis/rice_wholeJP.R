@@ -8,12 +8,15 @@ load(here('data','ricedata.RData'))
 
 # Data Preparation ----
 caldates  <- calibrate(ricedata$C14Age,ricedata$C14Error)
+ii  <- which.CalDates(caldates,BP<=4000&BP>1700,p=0.5)
+ricedata  <- ricedata[ii,]
+caldates  <- ricedata[ii]
 ricedata$site.id  <- as.integer(factor(ricedata$SiteNameJp))
 
 # Define Constants ----
 constants  <- list()
 constants$N  <- nrow(ricedata)
-constants$Nsites  <- length(unique(ricedata$site.id))
+constants$NSites  <- length(unique(ricedata$site.id))
 constants$siteID  <- ricedata$site.id
 constants$calBP  <- intcal20$CalBP
 constants$C14BP  <- intcal20$C14Age
@@ -50,7 +53,7 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 			cra[i] ~ dnorm(mean=mu[i],sd=sigma[i]);
 
 			# Prior for theta (flat)
-			theta[i] ~ dunif(1000,10000)
+			theta[i] ~ dunif(1000,50000)
 		}
 
 		r ~ dexp(10) # prior adoption rate
