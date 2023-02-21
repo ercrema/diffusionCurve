@@ -8,6 +8,9 @@ load(here('data','ricedata.RData'))
 
 # Data Preparation ----
 caldates  <- calibrate(ricedata$C14Age,ricedata$C14Error)
+ii  <- which.CalDates(caldates,BP<=4000&BP>1700,p=0.5)
+ricedata <- ricedata[ii,]
+caldates  <- caldates[ii]
 ricedata$site.id  <- as.integer(factor(ricedata$SiteNameJp))
 ricedata$Region2  <- ifelse(ricedata$Region %in% c('Chubu','Kanto','Tohoku'),1,2)
 
@@ -15,7 +18,7 @@ ricedata$Region2  <- ifelse(ricedata$Region %in% c('Chubu','Kanto','Tohoku'),1,2
 # Define Constants ----
 constants  <- list()
 constants$N  <- nrow(ricedata)
-constants$Nsites  <- length(unique(ricedata$site.id))
+constants$NSites  <- length(unique(ricedata$site.id))
 constants$siteID  <- ricedata$site.id
 constants$region  <- ricedata$Region2
 constants$calBP  <- intcal20$CalBP
@@ -73,8 +76,8 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 
 	#Define inits
 	inits  <- list()
-	inits$r  <- 0.0001
-	inits$m  <- 3000
+	inits$r  <- c(0.0001,0.0001)
+	inits$m  <- c(3000,3000)
 	inits$mu_k  <- 1
 	inits$sigma_k  <- 1
 	inits$logk  <- rnorm(constants$NSites,mean=inits$mu_k,sd=inits$sigma_k)
