@@ -10,7 +10,7 @@ load(here('data','ricedata.RData'))
 caldates  <- calibrate(ricedata$C14Age,ricedata$C14Error)
 ii  <- which.CalDates(caldates,BP<=4000&BP>1700,p=0.5)
 ricedata  <- ricedata[ii,]
-caldates  <- ricedata[ii]
+caldates  <- caldates[ii]
 ricedata$site.id  <- as.integer(factor(ricedata$SiteNameJp))
 
 # Define Constants ----
@@ -95,10 +95,18 @@ cl  <- makeCluster(nchains)
 seeds  <- c(12,34,56,78)[1:nchains]
 
 # Run MCMC ----
-out  <- parLapply(cl=cl,X=seeds,fun=runFun,d=d,constants=constants,theta=theta.init,niter=niter,nburnin=nburnin,thin=thin)
+out  <- parLapply(cl=cl,X=seeds,fun=runFun,d=d,constants=constants,theta=theta,niter=niter,nburnin=nburnin,thin=thin)
 stopCluster(cl)
 
 # Diagnostic and Posterior Processing ----
 post.sample  <- coda::mcmc.list(out)
 diagnostic  <- coda::gelman.diag(post.sample)
 
+
+# Store output ----
+post.sample.combined  <- do.call(rbind.data.frame,post.sample)
+post.sample.theta  <- post.sample.combined[,grep('theta',colnames(post.sample.combined))]
+post.sample.core  <- post.sample.combined[,!grepl('theta',colnames(post.sample.combined))]
+
+# save(post.sample.theta,file=here('analysis','res_rice_SW_NE_theta.RData'))
+save(diagnostic,post.sample.core,file=here('analysis','res_rice_whole_core.RData'))
