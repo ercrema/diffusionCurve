@@ -12,7 +12,9 @@ ii  <- which.CalDates(caldates,BP<=4000&BP>1700,p=0.5)
 ricedata <- ricedata[ii,]
 caldates  <- caldates[ii]
 ricedata$site.id  <- as.integer(factor(ricedata$SiteNameJp))
-ricedata$Region2  <- ifelse(ricedata$Region %in% c('Chubu','Kanto','Tohoku'),1,2)
+ricedata$Region2  <- ifelse(ricedata$Region %in% c('Chubu','Kanto','Tohoku'),2,1)
+site.region  <- unique(data.frame(ricedata$site.id,ricedata$Region2))
+site.region  <- site.region[order(site.region[,1]),]
 
 
 # Define Constants ----
@@ -21,6 +23,7 @@ constants$N  <- nrow(ricedata)
 constants$NSites  <- length(unique(ricedata$site.id))
 constants$siteID  <- ricedata$site.id
 constants$region  <- ricedata$Region2
+constants$site.region  <- site.region[,2]
 constants$calBP  <- intcal20$CalBP
 constants$C14BP  <- intcal20$C14Age
 constants$C14err  <- intcal20$C14Age.sigma
@@ -60,17 +63,18 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 		}
 
 
-		r[1] ~ dexp(10) # prior adoption rate
-		r[2] ~ dexp(10) # prior adoption rate
+		r[1] ~ dexp(100) # prior adoption rate
+		r[2] ~ dexp(100) # prior adoption rate
 		m[1] ~ T(dnorm(mean=2500,sd=500),1000,50000) #prior mid-point
 		m[2] ~ T(dnorm(mean=2500,sd=500),1000,50000) #prior mid-point
 
 		for (j in 1:NSites)
 		{
-			logk[j] ~ dnorm(mean=mu_k,sd=sigma_k) #prior site
+			logk[j] ~ dnorm(mean=mu_k[site.region[j]],sd=sigma_k) #prior site
 			k[j]  <- 1/(1+exp(-logk[j])) 
 		}
-		mu_k ~ dnorm(0,1) #hyperprior for site prior
+		mu_k[1] ~ dnorm(0,1) #hyperprior for site prior for region 1
+		mu_k[2] ~ dnorm(0,1) #hyperprior for site prior for region 2
 		sigma_k ~ dinvgamma(5,5) #hyperprior for site prior
 	})
 
@@ -78,9 +82,9 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 	inits  <- list()
 	inits$r  <- c(0.0001,0.0001)
 	inits$m  <- c(3000,3000)
-	inits$mu_k  <- 1
+	inits$mu_k  <- c(1,1)
 	inits$sigma_k  <- 1
-	inits$logk  <- rnorm(constants$NSites,mean=inits$mu_k,sd=inits$sigma_k)
+	inits$logk  <- rnorm(constants$NSites,mean=inits$mu_k[1],sd=inits$sigma_k)
 	inits$theta  <- theta
 
 	#Setup MCMC
