@@ -118,9 +118,66 @@ stopCluster(cl)
 post.sample  <- coda::mcmc.list(out)
 diagnostic  <- coda::gelman.diag(post.sample)
 
-# Store output ----
+# Combined output ----
 post.sample.combined  <- do.call(rbind.data.frame,post.sample)
 post.sample.theta  <- post.sample.combined[,grep('theta',colnames(post.sample.combined))]
 post.sample.core  <- post.sample.combined[,!grepl('theta',colnames(post.sample.combined))]
 
+# Posterior Predictive Checks ----
+nsim  <- 1000 #Number of posterior simulations
+ppmat  <- matrix(NA,nrow=constants$N,ncol=nsim) #Matrix storing predictions
+
+# Simulation Model
+adoptionSimModel  <- nimbleCode({
+	for (i in 1:N)
+	{
+		y[i] ~ dbern(p[i])
+		p[i]  <- k[siteID[i]]/(1+exp(r[region[i]]*(theta[i]-m[region[i]]))); #sigmoidal model
+		mu[i] <- interpLin(z=theta[i], x=calBP[], y=C14BP[]);
+		sigmaCurve[i] <- interpLin(z=theta[i], x=calBP[], y=C14err[]);
+		sigma[i] <- (cra_error[i]^2+sigmaCurve[i]^2)^(1/2);
+		cra[i] ~ dnorm(mean=mu[i],sd=sigma[i]);
+		theta[i] ~ dunif(1000,10000)
+	}
+	r[1] ~ dexp(100) # prior adoption rate
+	r[2] ~ dexp(100) # prior adoption rate
+	r[3] ~ dexp(100) # prior adoption rate
+	m[1] ~ T(dnorm(mean=2500,sd=500),1000,50000) #prior mid-point
+	m[2] ~ T(dnorm(mean=2500,sd=500),1000,50000) #prior mid-point
+	m[3] ~ T(dnorm(mean=2500,sd=500),1000,50000) #prior mid-point
+
+	for (j in 1:NSites)
+	{
+		logk[j] ~ dnorm(mean=mu_k[site.region[j]],sd=sigma_k) #prior site
+		k[j]  <- 1/(1+exp(-logk[j])) 
+	}
+	mu_k[1] ~ dnorm(0,1) #hyperprior for site prior for region 1
+	mu_k[2] ~ dnorm(0,1) #hyperprior for site prior for region 2
+	mu_k[3] ~ dnorm(0,1) #hyperprior for site prior for region 2
+	sigma_k ~ dinvgamma(5,5) #hyperprior for site prior
+})
+
+
+sim.model  <- nimbleModel(adoptionSimModel,constants=constants,data=d)
+
+pb <- txtProgressBar(min = 0, max = nsim, style = 3, width = 50, char = "=")
+
+for (i in 1:nsim)
+{
+    setTxtProgressBar(pb, i)
+    sim.model$sigma_k  <- post.sample.combined[i,'sigma_k']
+    sim.model$mu_k  <- post.sample.combined[i,grep('mu_k\\[',colnames(post.sample.combined))]
+    sim.model$r  <- post.sample.combined[i,grep('r\\[',colnames(post.sample.combined))]
+    sim.model$m  <- post.sample.combined[i,grep('m\\[',colnames(post.sample.combined))]
+    sim.model$logk  <- post.sample.combined[i,grep('logk\\[',colnames(post.sample.combined))]
+    sim.model$theta  <- post.sample.combined[i,grep('theta\\[',colnames(post.sample.combined))]
+    sim.model$calculate('k')
+    sim.model$calculate('p')
+    ppmat[,i]  <- rbinom(constants$N,prob=unlist(sim.model$p),size=1)
+}
+
+
+
+# Store output ----
+save(constants,d,ppmat,file=here('analysis','res_rice_3reg_ppcheck.RData'))
 save(diagnostic,post.sample.core,file=here('analysis','res_rice_3reg_core.RData'))
