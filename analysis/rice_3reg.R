@@ -157,6 +157,7 @@ adoptionSimModel  <- nimbleCode({
 	sigma_k ~ dinvgamma(5,5) #hyperprior for site prior
 })
 
+s.index  <- sample((niter-nburnin)*nchains/thin,size=nsim)
 
 sim.model  <- nimbleModel(adoptionSimModel,constants=constants,data=d)
 
@@ -165,14 +166,16 @@ pb <- txtProgressBar(min = 0, max = nsim, style = 3, width = 50, char = "=")
 for (i in 1:nsim)
 {
     setTxtProgressBar(pb, i)
-    sim.model$sigma_k  <- post.sample.combined[i,'sigma_k']
-    sim.model$mu_k  <- post.sample.combined[i,grep('mu_k\\[',colnames(post.sample.combined))]
-    sim.model$r  <- post.sample.combined[i,grep('r\\[',colnames(post.sample.combined))]
-    sim.model$m  <- post.sample.combined[i,grep('m\\[',colnames(post.sample.combined))]
-    sim.model$logk  <- post.sample.combined[i,grep('logk\\[',colnames(post.sample.combined))]
-    sim.model$theta  <- post.sample.combined[i,grep('theta\\[',colnames(post.sample.combined))]
+    ii  <- s.index[i]
+    sim.model$sigma_k  <- as.numeric(post.sample.combined[ii,'sigma_k'])
+    sim.model$mu_k  <- as.numeric(post.sample.combined[ii,grep('mu_k\\[',colnames(post.sample.combined))])
+    sim.model$r  <- as.numeric(post.sample.combined[ii,grep('r\\[',colnames(post.sample.combined))])
+    sim.model$m  <- as.numeric(post.sample.combined[ii,grep('m\\[',colnames(post.sample.combined))])
+#     sim.model$logk  <- post.sample.combined[ii,grep('logk\\[',colnames(post.sample.combined))]
+    sim.model$theta  <- as.numeric(post.sample.combined[ii,grep('theta\\[',colnames(post.sample.combined))])
+    sim.model$simulate('logk')
     sim.model$calculate('k')
-    sim.model$calculate('p')
+    sim.model$simulate('p')
     ppmat[,i]  <- rbinom(constants$N,prob=unlist(sim.model$p),size=1)
 }
 
