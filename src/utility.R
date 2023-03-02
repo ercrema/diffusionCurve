@@ -52,10 +52,132 @@ plot.fitted  <- function(r,m,mu_k,timeRange,calendar='BP',nsample=NULL,interval=
 	box()
 }
 
+ppcheck  <- function(x,obs,ppmat,timeRange,runm=50)
+{
+	require(rcarbon)
+	#x ... caldates
+	#obs ... observed binary sequence
+	#ppmat ... predicted binary sequence	
+	spd.obs1  <- spd(x[which(obs==1)],timeRange=timeRange,verbose=F,spdnormalised = FALSE)
+	spd.obs0  <- spd(x[which(obs==0)],timeRange=timeRange,verbose=F,spdnormalised = FALSE)
+	plotyears  <- timeRange[1]:timeRange[2]
+	obs.prop  <- spd.obs1[[2]][,2] / (spd.obs0[[2]][,2] + spd.obs1[[2]][,2]) 
+	pred.prop  <- matrix(NA,ncol=ncol(ppmat),nrow=length(plotyears))
+	pb <- txtProgressBar(min = 0, max = ncol(ppmat), style = 3, width = 50, char = "=")
+
+	for (i in 1:ncol(ppmat))
+	{
+		setTxtProgressBar(pb, i)
+		spd.sim1  <- spd(x[which(ppmat[,i]==1)],timeRange=timeRange,verbose=F,spdnormalised = F)
+		spd.sim0  <- spd(x[which(ppmat[,i]==0)],timeRange=timeRange,verbose=F,spdnormalised = F)
+		pred.prop[,i]  <- spd.sim1[[2]][,2] / (spd.sim0[[2]][,2] + spd.sim1[[2]][,2]) 
+	}
+	return(list(plotyears=plotyears,obs.prop=obs.prop,pred.prop=pred.prop))
+}
+
+
+plotPcheck <- function(x,calendar,interval=0.9,envelope.col='lightgrey',positive.col='red',negative.col='blue',obs.col='black',obs.lwd=2)
+{
+	require(rcarbon)
+	if (calendar=='BP')
+	{
+		ticks  <- pretty(x$plotyears)
+		tickLoc  <- ticks
+		xlab  <- 'BP'
+	}
+
+	if (calendar=='BCAD')
+	{
+		ticks  <- abs(BPtoBCAD(pretty(x$plotyears)))
+		tickLoc  <- pretty(x$plotyears)
+		xlab  <- 'BC/AD'
+	}
 
 
 
+	obs  <- x$obs.prop
+	lo  <- apply(x$pred.prop,1,quantile,prob=(1-interval)/2)
+	hi  <- apply(x$pred.prop,1,quantile,prob= interval + (1-interval)/2)
 
 
+	# Boom and Bust Handling ####
+	booms <- which(obs>hi)
+	busts <- which(obs<lo)
+	baseline <- rep(NA,length(obs))
+	colpts = rep('grey',length(obs))
+	colpts[booms] = 'red'
+	colpts[busts] = 'blue'
 
+	boomPlot <- baseline
+	if (length(booms)>0){ boomPlot[booms]=obs[booms] }
+	bustPlot <- baseline
+	if (length(busts)>0){ bustPlot[busts]=obs[busts] }           
 
+	boomBlocks <- vector("list")
+	counter <- 0
+	state <- "off"
+	for (i in 1:length(boomPlot)){
+		if (!is.na(boomPlot[i])&state=="off"){
+			counter <- counter+1
+			boomBlocks <- c(boomBlocks,vector("list",1))
+			boomBlocks[[counter]] <- vector("list",2)
+			boomBlocks[[counter]][[1]] <- boomPlot[i]
+			boomBlocks[[counter]][[2]] <- x$plotyears[i]
+			state <- "on"
+		}
+		if (state=="on"){
+			if (!is.na(boomPlot[i])){
+				boomBlocks[[counter]][[1]] <- c(boomBlocks[[counter]][[1]],boomPlot[i])
+				boomBlocks[[counter]][[2]] <- c(boomBlocks[[counter]][[2]],x$plotyears[i])
+			}
+			if (is.na(boomPlot[i])){
+				state <- "off"
+			}
+		}   
+	}
+
+	bustBlocks <- vector("list")
+	counter <- 0
+	state <- "off"
+	for (i in 1:length(bustPlot)){
+		if (!is.na(bustPlot[i])&state=="off"){
+			counter <- counter+1
+			bustBlocks <- c(bustBlocks,vector("list",1))
+			bustBlocks[[counter]] <- vector("list",2)
+			bustBlocks[[counter]][[1]] <- bustPlot[i]
+			bustBlocks[[counter]][[2]] <- x$plotyears[i]
+			state <- "on"
+		}
+		if (state=="on"){
+			if (!is.na(bustPlot[i])){
+				bustBlocks[[counter]][[1]] <- c(bustBlocks[[counter]][[1]],bustPlot[i])
+				bustBlocks[[counter]][[2]] <- c(bustBlocks[[counter]][[2]],x$plotyears[i])
+			}
+			if (is.na(bustPlot[i])){
+				state <- "off"
+			}
+		}   
+	}
+
+	plot(NULL,xlim=rev(range(x$plotyears)), ylim=c(0,1), type="n", col="white", ylab='Probability', xlab=xlab, xaxt="n")
+	axis(1,at=tickLoc,labels=ticks)
+
+	polygon(c(x$plotyears,rev(x$plotyears)),c(lo,rev(hi)),col=envelope.col,border=NA)
+
+	if (length(booms)>0){
+		for (i in 1:length(boomBlocks)){
+			bbb = unique(boomBlocks[[i]][[2]])
+			index = which(x$plotyears%in%bbb)
+			polygon(c(bbb,rev(bbb)),c(obs[index],rev(hi[index])),border=NA,col=positive.col)
+		}  
+	}
+
+	if (length(busts)>0){
+		for (i in 1:length(bustBlocks)){
+			bbb = unique(bustBlocks[[i]][[2]])
+			index = which(x$plotyears%in%bbb)
+			polygon(c(bbb,rev(bbb)),c(x$obs$PrDens[index],rev(lo[index])),border=NA,col=negative.col)
+		}  
+	}
+	lines(x$plotyears,obs,lwd=obs.lwd,col=obs.col)
+}
