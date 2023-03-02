@@ -96,6 +96,7 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 	fit.model  <- nimbleModel(adoptionModel,constants=constants,data=d,inits=inits)
 	cfit.model <- compileNimble(fit.model)
 	conf <- configureMCMC(fit.model)
+	conf$addMonitors('logk')
 	MCMC <- buildMCMC(conf)
 	cMCMC <- compileNimble(MCMC)
 
@@ -121,10 +122,10 @@ diagnostic  <- coda::gelman.diag(post.sample)
 # Combined output ----
 post.sample.combined  <- do.call(rbind.data.frame,post.sample)
 post.sample.theta  <- post.sample.combined[,grep('theta',colnames(post.sample.combined))]
-post.sample.core  <- post.sample.combined[,!grepl('theta',colnames(post.sample.combined))]
+post.sample.core  <- post.sample.combined[,!grepl('theta|logk',colnames(post.sample.combined))]
 
 # Posterior Predictive Checks ----
-nsim  <- 1000 #Number of posterior simulations
+nsim  <- 5000 #Number of posterior simulations
 ppmat  <- matrix(NA,nrow=constants$N,ncol=nsim) #Matrix storing predictions
 
 # Simulation Model
@@ -173,7 +174,8 @@ for (i in 1:nsim)
     sim.model$m  <- as.numeric(post.sample.combined[ii,grep('m\\[',colnames(post.sample.combined))])
 #     sim.model$logk  <- post.sample.combined[ii,grep('logk\\[',colnames(post.sample.combined))]
     sim.model$theta  <- as.numeric(post.sample.combined[ii,grep('theta\\[',colnames(post.sample.combined))])
-    sim.model$simulate('logk')
+#     sim.model$simulate('logk')
+    sim.model$logk  <- as.numeric(post.sample.combined[ii,grep('logk\\[',colnames(post.sample.combined))])
     sim.model$calculate('k')
     sim.model$simulate('p')
     ppmat[,i]  <- rbinom(constants$N,prob=unlist(sim.model$p),size=1)
