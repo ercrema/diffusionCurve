@@ -52,7 +52,7 @@ plot.fitted  <- function(r,m,mu_k,timeRange,calendar='BP',nsample=NULL,interval=
 	box()
 }
 
-ppcheck  <- function(x,obs,ppmat,timeRange,runm=50)
+ppcheck  <- function(x,obs,ppmat,timeRange)
 {
 	require(rcarbon)
 	#x ... caldates
@@ -68,9 +68,11 @@ ppcheck  <- function(x,obs,ppmat,timeRange,runm=50)
 	for (i in 1:ncol(ppmat))
 	{
 		setTxtProgressBar(pb, i)
-		spd.sim1  <- spd(x[which(ppmat[,i]==1)],timeRange=timeRange,verbose=F,spdnormalised = F)
-		spd.sim0  <- spd(x[which(ppmat[,i]==0)],timeRange=timeRange,verbose=F,spdnormalised = F)
-		pred.prop[,i]  <- spd.sim1[[2]][,2] / (spd.sim0[[2]][,2] + spd.sim1[[2]][,2]) 
+		if (all(ppmat[,i]==0)){spd.sim1  <- rep(0,length(plotyears))} else {
+		spd.sim1  <- spd(x[which(ppmat[,i]==1)],timeRange=timeRange,verbose=F,spdnormalised = F)[[2]][,2]}
+		if (all(ppmat[,i]==1)){spd.sim0  <- rep(0,length(plotyears))} else {
+		spd.sim0  <- spd(x[which(ppmat[,i]==0)],timeRange=timeRange,verbose=F,spdnormalised = F)[[2]][,2]}
+		pred.prop[,i]  <- spd.sim1 / (spd.sim0 + spd.sim1) 
 	}
 	return(list(plotyears=plotyears,obs.prop=obs.prop,pred.prop=pred.prop))
 }
@@ -88,8 +90,11 @@ plotPcheck <- function(x,calendar,interval=0.9,envelope.col='lightgrey',positive
 
 	if (calendar=='BCAD')
 	{
-		ticks  <- abs(BPtoBCAD(pretty(x$plotyears)))
-		tickLoc  <- pretty(x$plotyears)
+
+		ticks  <- pretty(BPtoBCAD(timeRange))
+		if (any(ticks==0)){ticks[which(ticks==0)] <- 1}
+		tickLoc  <- BCADtoBP(ticks)
+		ticks  <- abs(ticks)
 		xlab  <- 'BC/AD'
 	}
 
