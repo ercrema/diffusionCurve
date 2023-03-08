@@ -75,12 +75,12 @@ i.scottish_isles  <- (gbdata$Region=='Scotland') & !scotland_mainland.int & !sco
 any((i.scotland.mainland + i.england_and_wales + i.scottish_isles) > 2)
 
 # Sanity Check plot
-uk.win  <- st_union(uk) |> st_cast(to='POLYGON') 
-plot(uk.win)
-plot(sites,pch=19,col='lightgrey',add=TRUE,cex=0.5)
-plot(sites[i.scotland.mainland,],pch=19,col='blue',add=TRUE,cex=0.5)
-plot(sites[i.scottish_isles,],pch=19,col='orange',add=TRUE,cex=0.5)
-plot(sites[i.england_and_wales,],pch=19,col='darkgreen',add=TRUE,cex=0.5)
+# uk.win  <- st_union(uk) |> st_cast(to='POLYGON') 
+# plot(uk.win)
+# plot(sites[i.scotland.mainland,],pch=19,col='blue',add=TRUE,cex=0.5)
+# plot(sites[i.scottish_isles,],pch=19,col='orange',add=TRUE,cex=0.5)
+# plot(sites[i.england_and_wales,],pch=19,col='darkgreen',add=TRUE,cex=0.5)
+# plot(sites[!inside,],pch=19,col='red',add=TRUE,cex=0.5)
 
 # Assign Regions
 gbdata$Region2  <- NA
@@ -88,18 +88,13 @@ gbdata$Region2[i.scotland.mainland] <- 'scotland_main'
 gbdata$Region2[i.scottish_isles] <- 'scottish_isles'
 gbdata$Region2[i.england_and_wales] <- 'england_wales'
 gbdata$Region2[!inside] <- 'sea'
-write.csv(gbdata,file=here('data','gb_check.csv'),row.names=FALSE)
+# table(gbdata$Region2)
 
-# Final Sanity Check
+# Export data for manual inspection ----
+write.csv(gbdata,file=here('data','raw','gb_check.csv'),row.names=FALSE)
 
-plot(uk.win)
-sites2  <- st_as_sf(gbdata,coords=c('Longitude','Latitude'),crs=4326) |> st_transform(x=_,27700)
-plot(sites2,pch=19,col='lightgrey',add=TRUE,cex=0.5)
-plot(sites2[gbdata$Region2=='scotmain',],pch=19,col='blue',add=TRUE,cex=0.5)
-plot(sites2[gbdata$Region2=='scotisles',],pch=19,col='orange',add=TRUE,cex=0.5)
-plot(sites2[gbdata$Region2=='engwal',],pch=19,col='darkgreen',add=TRUE,cex=0.5)
-
-gbdata  <- subset(gbdata,!is.na(Region2))
+# Read data after manual inspection ----
+gbdata  <- read.csv(file=here('data','raw','gb_checked.csv'))
 
 save(gbdata,file=here('data','gbdata.RData'))
 
