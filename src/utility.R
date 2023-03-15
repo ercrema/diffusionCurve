@@ -91,7 +91,7 @@ plotPcheck <- function(x,calendar,interval=0.9,envelope.col='lightgrey',positive
 	if (calendar=='BCAD')
 	{
 
-		ticks  <- pretty(BPtoBCAD(timeRange))
+		ticks  <- pretty(BPtoBCAD(x$plotyears))
 		if (any(ticks==0)){ticks[which(ticks==0)] <- 1}
 		tickLoc  <- BCADtoBP(ticks)
 		ticks  <- abs(ticks)
@@ -181,7 +181,7 @@ plotPcheck <- function(x,calendar,interval=0.9,envelope.col='lightgrey',positive
 		for (i in 1:length(bustBlocks)){
 			bbb = unique(bustBlocks[[i]][[2]])
 			index = which(x$plotyears%in%bbb)
-			polygon(c(bbb,rev(bbb)),c(x$obs$PrDens[index],rev(lo[index])),border=NA,col=negative.col)
+			polygon(c(bbb,rev(bbb)),c(obs[index],rev(lo[index])),border=NA,col=negative.col)
 		}  
 	}
 	lines(x$plotyears,obs,lwd=obs.lwd,col=obs.col)
