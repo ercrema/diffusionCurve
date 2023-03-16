@@ -159,8 +159,11 @@ for (i in 1:nsim)
     ppmat[,i]  <- rbinom(constants$N,prob=unlist(sim.model$p),size=1)
 }
 
+# Rename before saving
+ppmat.jpwhole  <- ppmat
+constants.jpwhole  <- constants
+d.jpwhole  <- d
 
 
-
-save(constants,d,ppmat,file=here('analysis','ppcheck_jpwhole.RData'))
+save(constants.jpwhole,d.jpwhole,ppmat.jpwhole,file=here('analysis','ppcheck_jpwhole.RData'))
 save(rhats,post.sample.core.jpwhole,file=here('analysis','post_jpwhole.RData'))

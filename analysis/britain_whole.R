@@ -162,8 +162,11 @@ for (i in 1:nsim)
     ppmat[,i]  <- rbinom(constants$N,prob=unlist(sim.model$p),size=1)
 }
 
-
+# Rename before saving
+ppmat.gbwhole  <- ppmat
+constants.gbwhole  <- constants
+d.gbwhole  <- d
 
 # Store output ----
-save(constants,d,ppmat,file=here('analysis','ppcheck_gbwhole.RData'))
+save(constants.gbwhole,d.gbwhole,ppmat.gbwhole,file=here('analysis','ppcheck_gbwhole.RData'))
 save(rhats,post.sample.core.gbwhole,file=here('analysis','post_gbwhole.RData'))

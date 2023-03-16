@@ -179,8 +179,11 @@ for (i in 1:nsim)
     ppmat[,i]  <- rbinom(constants$N,prob=unlist(sim.model$p),size=1)
 }
 
-
+# Rename before saving
+ppmat.jpregional  <- ppmat
+constants.jpregional  <- constants
+d.jpregional  <- d
 
 # Store output ----
-save(constants,d,ppmat,file=here('analysis','ppcheck_jpregional.RData'))
+save(constants.jpregional,d.jpregional,ppmat.jpregional,file=here('analysis','ppcheck_jpregional.RData'))
 save(rhats,post.sample.core.jpregional,file=here('analysis','post_jpregional.RData'))
