@@ -168,5 +168,5 @@ constants.gbwhole  <- constants
 d.gbwhole  <- d
 
 # Store output ----
-save(constants.gbwhole,d.gbwhole,ppmat.gbwhole,file=here('analysis','ppcheck_gbwhole.RData'))
-save(rhats,post.sample.core.gbwhole,file=here('analysis','post_gbwhole.RData'))
+save(constants.gbwhole,d.gbwhole,ppmat.gbwhole,file=here('results','ppcheck_gbwhole.RData'))
+save(rhats,post.sample.core.gbwhole,file=here('results','post_gbwhole.RData'))

@@ -180,5 +180,5 @@ constants.gbregional  <- constants
 d.gbregional  <- d
 
 # Store output ----
-save(constants.gbregional,d.gbregional,ppmat.gbregional,file=here('analysis','ppcheck_gbregional.RData'))
-save(rhats,post.sample.core.gbregional,file=here('analysis','post_gbregional.RData'))
+save(constants.gbregional,d.gbregional,ppmat.gbregional,file=here('results','ppcheck_gbregional.RData'))
+save(rhats,post.sample.core.gbregional,file=here('results','post_gbregional.RData'))
