@@ -101,8 +101,8 @@ plotPcheck <- function(x,calendar,interval=0.9,envelope.col='lightgrey',positive
 
 
 	obs  <- x$obs.prop
-	lo  <- apply(x$pred.prop,1,quantile,prob=(1-interval)/2)
-	hi  <- apply(x$pred.prop,1,quantile,prob= interval + (1-interval)/2)
+	lo  <- apply(x$pred.prop,1,quantile,prob=(1-interval)/2,na.rm=T)
+	hi  <- apply(x$pred.prop,1,quantile,prob= interval + (1-interval)/2,na.rm=T)
 
 
 	# Boom and Bust Handling ####
