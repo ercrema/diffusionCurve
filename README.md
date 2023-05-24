@@ -1,1 +1,1 @@
-# adoptionCurve
+# diffusionCurve
