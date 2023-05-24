@@ -201,3 +201,22 @@ title('C Japan')
 plotPcheck(ppc.neast,calendar='BCAD')
 title('NE Japan')
 dev.off()
+
+# Burial ----
+load(here('results','post_icar_burial.RData'))
+
+
+tblocks <- seq(constants.icar$a,constants.icar$b,by=-constants.icar$res)
+
+
+pdf(here('figures','icar_cremation.pdf'),width=6,height=5)
+plot(tblocks,apply(post.sample.combined.icar[,1:constants.icar$n.tblocks],2,mean),pch=20,xlim=c(constants.icar$a,constants.icar$b),ylim=c(0,1),type='n',xlab='Cal BP',ylab='Estimated Proportion of Cremations')
+for (i in 1:constants.icar$n.tblocks)
+{
+	rect(xleft=tblocks[i]+45,xright=tblocks[i]-45,ybottom=quantile(post.sample.combined.icar[,i],0.025),ytop=quantile(post.sample.combined.icar[,i],0.975),border=NA,col='lightblue')
+	rect(xleft=tblocks[i]+45,xright=tblocks[i]-45,ybottom=quantile(post.sample.combined.icar[,i],0.25),ytop=quantile(post.sample.combined.icar[,i],0.75),border=NA,col='steelblue')
+
+}
+lines(tblocks,apply(post.sample.combined.icar[,1:constants.icar$n.tblocks],2,mean),pch=20,type='b')
+legend(x=3900,y=0.2,legend=c('95% HPD','50% HPD'),fill=c('lightblue','steelblue'),cex=0.9)
+dev.off()

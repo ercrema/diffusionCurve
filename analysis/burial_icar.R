@@ -2,6 +2,7 @@ library(here)
 library(nimble)
 library(rcarbon)
 library(nimbleCarbon)
+library(parallel)
 source(here('src','utility.R'))
 load(here('data','burialdata.RData'))
 
@@ -40,60 +41,84 @@ d <- list(y=burial$Cremation,cra=burial$CRA,cra_error=burial$Error)
 theta.init  <- medCal(calibrate(d$cra,d$cra_error))
 theta.init  <- ifelse(theta.init>constants$a-1,constants$a,theta.init)
 theta.init  <- ifelse(theta.init<constants$b+2,constants$b,theta.init)
-# Setup Inits ----
-inits  <- list()
-inits$theta  <- theta.init
-inits$sigma  <- 1
-inits$lpseq  <- rep(0,constants$n.tblocks)
+
+# Core runscript ----
+runFun  <- function(seed,d,constants,theta,nburnin,niter,thin)
+{
+	#Load libraries
+	library(nimbleCarbon)
+
+	#Define model
+	adoptionICAR  <- nimbleCode({
+		for (i in 1:n)
+		{
+			y[i] ~ dbern(p[i]) #probability of event y
+			p[i]  <- pseq[theta.index[i]]
 
 
+			#Calibration of observed cra
+			mu[i] <- interpLin(z=theta[i], x=calBP[], y=C14BP[]);
+			sigmaCurve[i] <- interpLin(z=theta[i], x=calBP[], y=C14err[]);
+			sigma[i] <- (cra_error[i]^2+sigmaCurve[i]^2)^(1/2);
+			cra[i] ~ dnorm(mean=mu[i],sd=sigma[i]);
 
-# Define model ----
-adoptionICAR  <- nimbleCode({
-	for (i in 1:n)
-	{
-		y[i] ~ dbern(p[i]) #probability of event y
-		p[i]  <- pseq[theta.index[i]]
+			# Prior for theta (flat)
+			theta[i] ~ dunif(b,a)
 
+			# Round theta and assign to timeblock
+			theta.rnd[i]  <- round(theta[i]/res)*res
+			theta.index[i]  <- 1 + (a - theta.rnd[i])/res
+		}
 
-		#Calibration of observed cra
-		mu[i] <- interpLin(z=theta[i], x=calBP[], y=C14BP[]);
-		sigmaCurve[i] <- interpLin(z=theta[i], x=calBP[], y=C14err[]);
-		sigma[i] <- (cra_error[i]^2+sigmaCurve[i]^2)^(1/2);
-		cra[i] ~ dnorm(mean=mu[i],sd=sigma[i]);
+		for (j in 1:n.tblocks)
+		{
+			pseq[j] <- 1 /(1 + exp(-lpseq[j]))
+		}
 
-		# Prior for theta (flat)
-		theta[i] ~ dunif(b,a)
+		lpseq[1:n.tblocks] ~ dcar_normal(adj[1:L], weights[1:L], num[1:n.tblocks], tau, zero_mean = 0)
+		tau <- 1/sigmap^2
+		sigmap  ~ dexp(1)
 
-		# Round theta and assign to timeblock
-		theta.rnd[i]  <- round(theta[i]/res)*res
-		theta.index[i]  <- 1 + (a - theta.rnd[i])/res
-	}
+	})
 
-	for (j in 1:n.tblocks)
-	{
-		pseq[j] <- 1 /(1 + exp(-lpseq[j]))
-	}
+	# Setup Inits
+	set.seed(seed)
+	inits  <- list()
+	inits$theta  <- theta
+	inits$sigma  <- rexp(1)
+	inits$lpseq  <- rnorm(constants$n.tblocks,0,0.5)
 
-	lpseq[1:n.tblocks] ~ dcar_normal(adj[1:L], weights[1:L], num[1:n.tblocks], tau, zero_mean = 0)
-	tau <- 1/sigmap^2
-	sigmap  ~ dexp(1)
+	# Setup MCMC
+	model  <- nimbleModel(adoptionICAR,constants=constants,inits=inits,data=d)
+	cModel <- compileNimble(model)
+	conf <- configureMCMC(model)
+	conf$addMonitors('pseq')
+	MCMC <- buildMCMC(conf)
+	cMCMC <- compileNimble(MCMC)
 
-})
+	#run model
+	results <- runMCMC(cMCMC, nchain=1,niter = niter, thin=thin, nburnin = nburnin,samplesAsCodaMCMC = T,setSeed=seed) 
+}
 
-# Setup MCMC ----
-model  <- nimbleModel(adoptionICAR,constants=constants,inits=inits,data=d)
-cModel <- compileNimble(model)
-conf <- configureMCMC(model)
-conf$addMonitors('pseq')
-MCMC <- buildMCMC(conf)
-cMCMC <- compileNimble(MCMC)
-results <- runMCMC(cMCMC, nchain=2,niter = 10000, thin=1, nburnin =2000,samplesAsCodaMCMC = T) 
-res  <- do.call(rbind.data.frame,results)
+# Parallelisation Setup ----
+niter  <- 20000
+nburnin <- 5000
+thin  <- 1
+nchains  <- 4
+cl  <- makeCluster(nchains)
+seeds  <- c(12,34,56,78)[1:nchains]
 
-tblocks <- seq(constants$a,constants$b,by=-constants$res)
-plot(tblocks,apply(res[,1:30],2,mean),pch=20,xlim=c(constants$a,constants$b),ylim=c(0,1))
-points(tblocks,apply(res[,1:30],2,quantile,0.025),pch="+",xlim=c(constants$a,constants$b),ylim=c(0,1))
-points(tblocks,apply(res[,1:30],2,quantile,0.975),pch="+",xlim=c(constants$a,constants$b),ylim=c(0,1))
-lines(constants$a:constants$b,logistic(predict(fit,data.frame(BP=constants$a:constants$b))))
+# Run MCMC ----
+out  <- parLapply(cl=cl,X=seeds,fun=runFun,d=d,constants=constants,theta=theta.init,niter=niter,nburnin=nburnin,thin=thin)
+stopCluster(cl)
+
+# Diagnostic and Posterior Processing ----
+post.sample  <- coda::mcmc.list(out)
+rhats  <- coda::gelman.diag(post.sample)
+which(rhats[[1]][,1]>1.01)
+
+# Store output ----
+post.sample.combined.icar  <- do.call(rbind.data.frame,post.sample)
+post.sample.combined.icar  <- post.sample.combined.icar[,grep('pseq',colnames(post.sample.combined.icar))]
+save(post.sample.combined.icar,constants,file=here('results','post_icar_burial.RData'))
 
