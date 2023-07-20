@@ -4,7 +4,8 @@ library(rcarbon)
 library(dplyr)
 
 # Load Data ----
-c14data  <- readRDS(here('data','raw','c14db_0.2.0.Rds'))
+# Read CSV data from https://www.rekihaku.ac.jp/up-cgi/login.pl?p=param/esrd_en/db_param
+c14data  <- read.csv(here('data','raw','c14db_1.1.0.csv'))
 
 # Prioritise unrounded dates ----
 c14data$C14Age = as.numeric(c14data$UnroundedCRA)
@@ -18,7 +19,7 @@ c14data$C14Error[j] = c14data$CRAError[j]
 c14data  <- subset(c14data,C14Age<=4000 & C14Age >=1000)
 
 # Consider only seeds
-seeds  <- subset(c14data,MaterialDetails %in% c('Charred Seed','Seed')) |> select(LabCode,MaterialDetails,Taxa,Prefecture=PrefectureNameEn,Region=Region,SiteNameJp,Latitude,Longitude,C14Age,C14Error)
+seeds  <- subset(c14data,MaterialDetails %in% c('Charred Seed','Seed')) |> select(LabCode,MaterialDetails,Taxa=MaterialTaxa,Prefecture,Region=Region,SiteNameJp,Latitude,Longitude,C14Age,C14Error)
 
 
 # Read rice data and pool samples TKA-23237 amd TKA-23238
