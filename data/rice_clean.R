@@ -58,6 +58,17 @@ ricedata$rice_nuts[which(ricedata$rice==TRUE)]  <- 1
 ricedata$rice_nuts[which(ricedata$Classification=='nuts (tree)')]  <- 0
 ricedata  <- subset(ricedata,!is.na(rice_nuts))
 
+# Subset to chronological window of analyses
+xx <- calibrate(ricedata$C14Age,ricedata$C14Error)
+ricedata <- ricedata[which.CalDates(xx,BP<4000&BP>1700,p=0.5),]
+
+# Define Additional Region for Analyses
+ricedata$Region2  <- NA
+ricedata$Region2[which(ricedata$Prefecture%in%c('Fukuoka','Saga','Nagasaki'))]  <- 'N.Kyushu'
+ricedata$Region2[which(ricedata$Region%in%c('Kansai'))]  <- 'Kinki'
+ricedata$Region2[which(ricedata$Prefecture%in%c('Kanagawa','Tokyo','Chiba','Saitama'))]  <- 'S.Kanto'
+ricedata$Region2[which(ricedata$Region%in%c('Tohoku'))]  <- 'Tohoku'
+
 # Store Output ----
 save(ricedata,file=here('data','ricedata.RData'))
 
