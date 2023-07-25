@@ -103,6 +103,10 @@ plotPcheck <- function(x,calendar,interval=0.9,envelope.col='lightgrey',positive
 	obs  <- x$obs.prop
 	lo  <- apply(x$pred.prop,1,quantile,prob=(1-interval)/2,na.rm=T)
 	hi  <- apply(x$pred.prop,1,quantile,prob= interval + (1-interval)/2,na.rm=T)
+	NAcensors  <- which(is.na(obs)|is.na(lo)|is.na(hi))
+	obs[NAcensors]  <- 0
+	lo[NAcensors] <- 0
+	hi[NAcensors]  <- 1
 
 
 	# Boom and Bust Handling ####
@@ -185,4 +189,14 @@ plotPcheck <- function(x,calendar,interval=0.9,envelope.col='lightgrey',positive
 		}  
 	}
 	lines(x$plotyears,obs,lwd=obs.lwd,col=obs.col)
+	if (length(NAcensors)>0)
+	{
+		Breaks <- c(0, which(diff(NAcensors) != 1), length(NAcensors))
+		NAblocks <- sapply(seq(length(Breaks) - 1), function(i) NAcensors[c((Breaks[i] + 1),Breaks[i+1])])
+		for(i in 1:ncol(NAblocks))
+		{
+			rect(xleft=x$plotyears[NAblocks[1,i]],xright=x$plotyears[NAblocks[2,i]],ybottom=-2,ytop=2,col='darkgrey',border='darkgrey')
+		}
+	}
+	box()
 }
