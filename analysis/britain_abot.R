@@ -101,7 +101,7 @@ stopCluster(cl)
 # Diagnostic and Posterior Processing ----
 post.sample  <- coda::mcmc.list(out)
 rhats.gb.abot  <- coda::gelman.diag(post.sample)
-# which(rhats[[1]][,1]>1.01)
+# which(rhats.gb.abot[[1]][,1]>1.01) #Only theta
 
 # Combined output ----
 post.sample.combined  <- do.call(rbind.data.frame,post.sample)

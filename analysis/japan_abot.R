@@ -8,7 +8,6 @@ load(here('data','jpdata.RData'))
 
 # Data Preparation ----
 caldates  <- calibrate(jpdata$C14Age,jpdata$C14Error)
-caldates  <- caldates[ii]
 jpdata$site.id  <- as.integer(factor(jpdata$SiteNameJp))
 
 # Define Constants ----
@@ -99,7 +98,7 @@ stopCluster(cl)
 # Diagnostic and Posterior Processing ----
 post.sample  <- coda::mcmc.list(out)
 rhats.jp.abot  <- coda::gelman.diag(post.sample)
-# which(rhat.jp.abot[[1]][,1]>1.01)
+# which(rhats.jp.abot[[1]][,1]>1.01) #only thetas
 
 # Store output ----
 post.sample.combined  <- do.call(rbind.data.frame,post.sample)
@@ -163,5 +162,5 @@ constants.jp.abot  <- constants
 d.jp.abot  <- d
 
 
-save(constants.jp.abot,d.jp.abot,ppmat.jp.abot,file=here('results','ppcheck_jp_whole.RData'))
-save(rhats,post.sample.core.jp.abot,file=here('results','post_jp_whole.RData'))
+save(constants.jp.abot,d.jp.abot,ppmat.jp.abot,file=here('results','ppcheck_jp_abot.RData'))
+save(rhats.jp.abot,post.sample.core.jp.abot,file=here('results','post_jp_abot.RData'))
