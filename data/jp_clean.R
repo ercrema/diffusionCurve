@@ -62,5 +62,9 @@ jpdata  <- subset(jpdata,!is.na(rice_nuts))
 xx <- calibrate(jpdata$C14Age,jpdata$C14Error)
 jpdata <- jpdata[which.CalDates(xx,BP<4000&BP>1700,p=0.5),]
 
+# Summaries
+nrow(jpdata) #551
+length(unique(jpdata$SiteNameJp))
+
 # Store Output ----
 save(jpdata,file=here('data','jpdata.RData'))

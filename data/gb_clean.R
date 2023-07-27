@@ -39,5 +39,10 @@ gbdata <- gbdata[which.CalDates(xx,BP<7000&BP>3000,p=0.5),]
 # Exclude Ireland
 gbdata  <- subset(gbdata,Region!='Ireland')
 
+# Count Data
+nrow(gbdata) #928
+length(unique(gbdata$SiteID)) #314
+table(gbdata$cat)
+
 # Store Results
 save(gbdata,file=here('data','gbdata.RData'))
