@@ -6,11 +6,6 @@ library(parallel)
 source(here('src','utility.R'))
 load(here('data','burialdata.RData'))
 
-# Consider only subset of the data
-theta.dist  <- calibrate(burial$CRA,burial$Error)
-i  <- which.CalDates(theta.dist,BP<5500&BP>2000,p=0.99)
-burial  <- burial[i,]
-
 # Define Constants and Data
 icar.struct  <- function(x)
 {
@@ -106,8 +101,8 @@ runFun  <- function(seed,d,constants,theta,nburnin,niter,thin)
 }
 
 # Parallelisation Setup ----
-niter  <- 100000
-nburnin <- 20000
+niter  <- 200000
+nburnin <- 100000
 thin  <- 4
 nchains  <- 4
 cl  <- makeCluster(nchains)
@@ -122,14 +117,15 @@ post.sample  <- coda::mcmc.list(out)
 rhats  <- coda::gelman.diag(post.sample)
 # which(rhats[[1]][,1]>1.01)
 # rhats[[1]][which(rhats[[1]][,1]>1.01),1]
-# lower convergence only for theta
+# lower convergence only for theta parameters
 
 # Store output ----
 post.sample.combined.icar  <- do.call(rbind.data.frame,post.sample)
-# agr  <- agreementIndex(d$cra,d$cra_error,theta=post.sample.combined.icar[,grep('theta',colnames(post.sample.combined.icar))])
-# min(agr$agreement)
-# theta show good agreement index, with smallest value equal to 79, indicating that the model per se is not problematic
+agr  <- agreementIndex(d$cra,d$cra_error,theta=post.sample.combined.icar[,grep('theta',colnames(post.sample.combined.icar))])
+min(agr$agreement)
+# theta show good agreement index, with smallest value equal to 72, indicating that the model per se is not problematic
 post.sample.combined.icar  <- post.sample.combined.icar[,grep('pseq',colnames(post.sample.combined.icar))]
 constants.icar  <- constants
-save(post.sample.combined.icar,constants.icar,file=here('results','post_icar_burial.RData'))
+rhats.icar  <- rhats
+save(rhats.icar,post.sample.combined.icar,constants.icar,file=here('results','post_icar_burial.RData'))
 
