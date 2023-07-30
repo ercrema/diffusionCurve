@@ -21,7 +21,7 @@ plot.fitted  <- function(r,m,mu_k,timeRange,calendar='BP',nsample=NULL,interval=
 	i  <- sample(length(r),size=nsample)
 	r.plot <- r[i]
 	m.plot <- round(m[i])
-	k.plot <- logistic(mu_k[i])
+	k.plot <- mu_k[i]
 
 	# Fill Matrix
 	mat  <- sapply(1:nsample,function(x,y,r,m,k){sigmoid(x=y,r=r[x],m=m[x],k=k[x])},y=timeRange[1]:timeRange[2],r=r.plot,m=m.plot,k=k.plot)
