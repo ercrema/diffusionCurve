@@ -2,7 +2,7 @@ library(nimbleCarbon)
 library(parallel)
 library(rcarbon)
 library(here)
-load(here('sim','simdata','simdata1.RData'))
+load(here('sim','simdata','simdata1_2.RData'))
 
 # Inits
 caldates  <- calibrate(d$cra,constants$cra_error)
@@ -36,22 +36,25 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 
 		r ~ dexp(10) # prior adoption rate
 		m ~ T(dnorm(mean=2500,sd=500),1000,50000) #prior mid-point
+
 		for (j in 1:NSites)
 		{
-			logk[j] ~ dnorm(mean=mu_k,sd=sigma_k) #prior site
-			k[j]  <- 1/(1+exp(-logk[j])) 
+			k[j] ~ dbeta(beta0,beta1)
 		}
-		mu_k ~ dnorm(0,1) #hyperprior for site prior
-		sigma_k ~ dinvgamma(5,5) #hyperprior for site prior
+
+		mu_k ~ dbeta(9,2)
+		sigma_k ~ dexp(1/50)
+		beta0  <- mu_k * (sigma_k) + 1
+		beta1  <- (1 - mu_k) * (sigma_k) + 1
 	})
 
 	#Define inits
 	inits  <- list()
 	inits$r  <- 0.0001
 	inits$m  <- 3000
-	inits$mu_k  <- 1
-	inits$sigma_k  <- 1
-	inits$logk  <- rnorm(constants$NSites,mean=inits$mu_k,sd=inits$sigma_k)
+	inits$mu_k  <- 0.8
+	inits$sigma_k  <- 5
+	inits$k  <- rbeta(constants$NSites,(inits$mu_k*inits$sigma_k +1),((1-inits$mu_k)*(inits$sigma_k)+1))
 	inits$theta  <- theta
 
 	#Setup MCMC
@@ -79,69 +82,11 @@ stopCluster(cl)
 # Diagnostic and Posterior Processing ----
 post.sample  <- coda::mcmc.list(out)
 rhats.sim1  <- coda::gelman.diag(post.sample)
-# which(rhats.sim1[[1]][,1]>1.01) #only thetas
+#  which(rhats.sim1[[1]][,1]>1.01) #only thetas
 
 # Store output ----
 post.sample.combined  <- do.call(rbind.data.frame,post.sample)
 post.sample.theta  <- post.sample.combined[,grep('theta',colnames(post.sample.combined))]
 post.sample.core.sim1  <- post.sample.combined[,!grepl('theta',colnames(post.sample.combined))]
 
-
-# Posterior Predictive Checks ----
-nsim  <- 1000 #Number of posterior simulations
-ppmat  <- matrix(NA,nrow=constants$N,ncol=nsim) #Matrix storing predictions
-
-# Simulation Model
-adoptionSimModel  <- nimbleCode({
-	for (i in 1:N)
-	{
-		y[i] ~ dbern(p[i])
-		p[i]  <- k[siteID[i]]/(1+exp(r*(theta[i]-m))); #sigmoidal model
-		mu[i] <- interpLin(z=theta[i], x=calBP[], y=C14BP[]);
-		sigmaCurve[i] <- interpLin(z=theta[i], x=calBP[], y=C14err[]);
-		sigma[i] <- (cra_error[i]^2+sigmaCurve[i]^2)^(1/2);
-		cra[i] ~ dnorm(mean=mu[i],sd=sigma[i]);
-		theta[i] ~ dunif(1000,10000)
-	}
-	r ~ dexp(100) # prior adoption rate
-	m ~ T(dnorm(mean=5500,sd=1000),1000,50000) #prior mid-point
-
-	for (j in 1:NSites)
-	{
-		logk[j] ~ dnorm(mean=mu_k,sd=sigma_k) #prior site
-		k[j]  <- 1/(1+exp(-logk[j])) 
-	}
-	mu_k ~ dnorm(0,1) #hyperprior for site prior for region 1
-	sigma_k ~ dinvgamma(5,5) #hyperprior for site prior
-})
-
-s.index  <- sample((niter-nburnin)*nchains/thin,size=nsim)
-
-sim.model  <- nimbleModel(adoptionSimModel,constants=constants,data=d)
-
-pb <- txtProgressBar(min = 0, max = nsim, style = 3, width = 50, char = "=")
-
-for (i in 1:nsim)
-{
-    setTxtProgressBar(pb, i)
-    ii  <- s.index[i]
-    sim.model$sigma_k  <- as.numeric(post.sample.combined[ii,'sigma_k'])
-    sim.model$mu_k  <- as.numeric(post.sample.combined[ii,'mu_k'])
-    sim.model$r  <- as.numeric(post.sample.combined[ii,'r'])
-    sim.model$m  <- as.numeric(post.sample.combined[ii,'m'])
-    sim.model$theta  <- as.numeric(post.sample.combined[ii,grep('theta\\[',colnames(post.sample.combined))])
-    sim.model$simulate('logk')
-#     sim.model$logk  <- as.numeric(post.sample.combined[ii,grep('logk\\[',colnames(post.sample.combined))])
-    sim.model$calculate('k')
-    sim.model$simulate('p')
-    ppmat[,i]  <- rbinom(constants$N,prob=unlist(sim.model$p),size=1)
-}
-
-# Rename before saving
-ppmat.sim1  <- ppmat
-constants.sim1  <- constants
-d.sim1  <- d
-
-
-save(constants.sim1,d.sim1,ppmat.sim1,file=here('sim','results','ppcheck_sim1.RData'))
 save(rhats.sim1,post.sample.core.sim1,file=here('sim','results','post_sim1.RData'))
