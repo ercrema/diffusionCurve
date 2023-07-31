@@ -1,10 +1,13 @@
-ibrary(here)
+library(here)
 library(nimble)
 library(rcarbon)
 library(nimbleCarbon)
 library(parallel)
 source(here('src','utility.R'))
 load(here('sim','simdata','simdata3.RData'))
+theta.init  <- medCal(calibrate(d$cra,d$cra_error))
+theta.init  <- ifelse(theta.init>constants$a-1,constants$a,theta.init)
+theta.init  <- ifelse(theta.init<constants$b+2,constants$b,theta.init)
 
 
 # Core runscript ----
@@ -66,8 +69,8 @@ runFun  <- function(seed,d,constants,theta,nburnin,niter,thin)
 }
 
 # Parallelisation Setup ----
-niter  <- 100000
-nburnin <- 20000
+niter  <- 200000
+nburnin <- 100000
 thin  <- 4
 nchains  <- 4
 cl  <- makeCluster(nchains)
@@ -80,9 +83,10 @@ stopCluster(cl)
 # Diagnostic and Posterior Processing ----
 post.sample.sim3  <- coda::mcmc.list(out)
 rhats.sim3  <- coda::gelman.diag(post.sample.sim3)
+# rhats.sim3[[1]][1:36,1]
 # Store output ----
 post.sample.combined.icar.sim3  <- do.call(rbind.data.frame,post.sample.sim3)
-post.sample.combined.icar.sim3  <- post.sample.combined.icar[,grep('pseq',colnames(post.sample.combined.icar.sim3))]
+post.sample.combined.icar.sim3  <- post.sample.combined.icar.sim3[,grep('pseq',colnames(post.sample.combined.icar.sim3))]
 constants.icar.sim3  <- constants
 save(post.sample.combined.icar.sim3,constants.icar.sim3,file=here('sim','results','post_icar_sim3.RData'))
 
