@@ -28,11 +28,18 @@ diffusionModel  <- nimbleCode({
 	m ~ T(dnorm(mean=midPrior,sd=midSD),1000,50000) #prior mid-point
 	for (j in 1:NSites)
 	{
-		logk[j] ~ dnorm(mean=mu_k,sd=sigma_k) #prior site
-		k[j]  <- 1/(1+exp(-logk[j])) 
+# 		logk[j] ~ dnorm(mean=mu_k,sd=sigma_k) #prior site
+# 		k[j]  <- 1/(1+exp(-logk[j])) 
+		k[j] ~ dbeta(beta0,beta1)
 	}
-	mu_k ~ dnorm(0,1) #hyperprior for site prior
-	sigma_k ~ dinvgamma(5,5) #hyperprior for site prior
+# 	mu_k ~ dnorm(0,1) #hyperprior for site prior
+# 	sigma_k ~ dexp(10)
+# 	mu_k ~ dbeta(2,2) #Unimodal shape with low prob on 0 and 1
+# 	sigma_k ~ dnorm(0,0.0001)
+# 	tau  <- 1/sqrt(sigma_k) 
+	beta0  <- mu_k * tau + 1
+	beta1  <- (1-mu_k) * tau + 1
+# 	sigma_k ~ dinvgamma(5,5) #hyperprior for site prior
 })
 
 
@@ -40,8 +47,10 @@ diffusionModel  <- nimbleCode({
 # Model Parameters
 r  <- 0.004
 m  <- 2700
-mu_k  <- 1
-sigma_k  <- 0.5
+mu_k  <- 0.8
+tau  <- 20
+
+true.param.1  <- list(r=r,m=m,mu_k=mu_k,tau=tau)
 
 # Prior Settings for m
 midPrior  <- 3000
@@ -66,6 +75,8 @@ constants$N  <- nsamples
 constants$NSites  <- nsites
 constants$siteID  <- c(1:constants$NSites,sample(1:constants$NSites,size=constants$N-constants$NSites,replace=TRUE)) #Assign SiteIDs
 constants$cra_error  <- rep(20,constants$N) #Constant 14C error of 20yrs
+constants$mu_k  <- mu_k
+constants$tau  <- tau
 
 # Simulate Response Variable
 diffusionModel.sim  <- nimbleModel(diffusionModel,constants=constants)
@@ -73,13 +84,15 @@ set.seed(seed)
 diffusionModel.sim$theta  <- round(runif(constants$N,min=end,max=begin)) #Random true dates uniformly within time-window
 diffusionModel.sim$r  <- r
 diffusionModel.sim$m  <- m
-diffusionModel.sim$mu_k  <- mu_k
-diffusionModel.sim$sigma_k  <- sigma_k
+# diffusionModel.sim$mu_k  <- mu_k
+# diffusionModel.sim$sigma_k  <- sigma_k
 diffusionModel.sim$simulate('mu')
 diffusionModel.sim$simulate('sigmaCurve')
 diffusionModel.sim$simulate('sigma')
 diffusionModel.sim$simulate('cra')
-diffusionModel.sim$simulate('logk')
+# diffusionModel.sim$simulate('logk')
+diffusionModel.sim$calculate('beta0')
+diffusionModel.sim$calculate('beta1')
 diffusionModel.sim$simulate('k')
 diffusionModel.sim$simulate('p')
 plot(sort(diffusionModel.sim$theta),diffusionModel.sim$p[order(diffusionModel.sim$theta)],xlim=c(5000,1500))
@@ -89,16 +102,16 @@ diffusionModel.sim$simulate('y')
 d  <- list()
 d$y  <- diffusionModel.sim$y
 d$cra  <- round(diffusionModel.sim$cra)
-save(constants,d,file=here('sim','simdata','simdata1.RData'))
+save(constants,d,true.param.1,file=here('sim','simdata','simdata1.RData'))
 
 
 # Simulation 2 (based on Case Study I - Britain) ----
 # Model Parameters
 r  <- 0.008
 m  <- 4500
-mu_k  <- 2
-sigma_k  <- 0.5
-
+mu_k  <- 0.9
+tau  <- 40
+true.param.2  <- list(r=r,m=m,mu_k=mu_k,tau=tau)
 # Prior Settings for m
 midPrior  <- 3500
 midSD  <- 500
@@ -122,6 +135,8 @@ constants$N  <- nsamples
 constants$NSites  <- nsites
 constants$siteID  <- c(1:constants$NSites,sample(1:constants$NSites,size=constants$N-constants$NSites,replace=TRUE)) #Assign SiteIDs
 constants$cra_error  <- rep(20,constants$N) #Constant 14C error of 20yrs
+constants$mu_k  <- mu_k
+constants$tau  <- tau
 
 # Simulate Response Variable
 diffusionModel.sim  <- nimbleModel(diffusionModel,constants=constants)
@@ -129,13 +144,15 @@ set.seed(seed)
 diffusionModel.sim$theta  <- round(runif(constants$N,min=end,max=begin)) #Random true dates uniformly within time-window
 diffusionModel.sim$r  <- r
 diffusionModel.sim$m  <- m
-diffusionModel.sim$mu_k  <- mu_k
-diffusionModel.sim$sigma_k  <- sigma_k
+# diffusionModel.sim$mu_k  <- mu_k
+# diffusionModel.sim$sigma_k  <- sigma_k
 diffusionModel.sim$simulate('mu')
 diffusionModel.sim$simulate('sigmaCurve')
 diffusionModel.sim$simulate('sigma')
 diffusionModel.sim$simulate('cra')
-diffusionModel.sim$simulate('logk')
+diffusionModel.sim$calculate('beta0')
+diffusionModel.sim$calculate('beta1')
+# diffusionModel.sim$simulate('logk')
 diffusionModel.sim$simulate('k')
 diffusionModel.sim$simulate('p')
 plot(sort(diffusionModel.sim$theta),diffusionModel.sim$p[order(diffusionModel.sim$theta)],xlim=c(7000,3000))
@@ -145,4 +162,4 @@ diffusionModel.sim$simulate('y')
 d  <- list()
 d$y  <- diffusionModel.sim$y
 d$cra  <- round(diffusionModel.sim$cra)
-save(constants,d,file=here('sim','simdata','simdata2.RData'))
+save(constants,d,true.param.2,file=here('sim','simdata','simdata2.RData'))
