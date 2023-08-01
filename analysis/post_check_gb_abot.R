@@ -8,7 +8,7 @@ load(here('results','ppcheck_gb_abot.RData'))
 
 caldates.gb.abot  <- calibrate(d.gb.abot$cra,constants.gb.abot$cra_error)
 obs.bin.gb.abot  <- d.gb.abot$y
-fitted.mat  <- apply(ppmat.params.gb.abot,1,function(x){sigmoid(4000:1700,r=x[1],m=x[2],k=x[3])})
+fitted.mat  <- apply(ppmat.params.gb.abot,1,function(x){sigmoid(7000:3000,r=x[1],m=x[2],k=x[3])})
 fitted.mean.gb.abot  <- apply(fitted.mat,1,mean)
 fitted.90env.gb.abot  <- apply(fitted.mat,1,quantile,prob=c(0.1,0.9))
     
