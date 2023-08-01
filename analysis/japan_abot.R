@@ -55,22 +55,25 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 
 		r ~ dexp(10) # prior adoption rate
 		m ~ T(dnorm(mean=2500,sd=500),1000,50000) #prior mid-point
+
 		for (j in 1:NSites)
 		{
-			logk[j] ~ dnorm(mean=mu_k,sd=sigma_k) #prior site
-			k[j]  <- 1/(1+exp(-logk[j])) 
+			k[j] ~ dbeta(beta0,beta1)
 		}
-		mu_k ~ dnorm(0,1) #hyperprior for site prior
-		sigma_k ~ dinvgamma(5,5) #hyperprior for site prior
+
+		mu_k ~ dbeta(9,2) 
+		sigma_k ~ dexp(1/50)
+		beta0  <- mu_k * (sigma_k) + 1
+		beta1  <- (1 - mu_k) * (sigma_k) + 1
 	})
 
 	#Define inits
 	inits  <- list()
 	inits$r  <- 0.0001
 	inits$m  <- 3000
-	inits$mu_k  <- 1
+	inits$mu_k  <- 0.7
 	inits$sigma_k  <- 1
-	inits$logk  <- rnorm(constants$NSites,mean=inits$mu_k,sd=inits$sigma_k)
+	inits$k  <- rbeta(constants$NSites,(inits$mu_k*inits$sigma_k +1),((1-inits$mu_k)*(inits$sigma_k)+1))
 	inits$theta  <- theta
 
 	#Setup MCMC
@@ -125,13 +128,16 @@ adoptionSimModel  <- nimbleCode({
 	r ~ dexp(100) # prior adoption rate
 	m ~ T(dnorm(mean=5500,sd=1000),1000,50000) #prior mid-point
 
+
 	for (j in 1:NSites)
 	{
-		logk[j] ~ dnorm(mean=mu_k,sd=sigma_k) #prior site
-		k[j]  <- 1/(1+exp(-logk[j])) 
+		k[j] ~ dbeta(beta0,beta1)
 	}
-	mu_k ~ dnorm(0,1) #hyperprior for site prior for region 1
-	sigma_k ~ dinvgamma(5,5) #hyperprior for site prior
+
+	mu_k ~ dbeta(9,2)
+	sigma_k ~ dexp(1/50)
+	beta0  <- mu_k * (sigma_k) + 1
+	beta1  <- (1 - mu_k) * (sigma_k) + 1
 })
 
 s.index  <- sample((niter-nburnin)*nchains/thin,size=nsim)
@@ -149,9 +155,9 @@ for (i in 1:nsim)
     sim.model$r  <- as.numeric(post.sample.combined[ii,'r'])
     sim.model$m  <- as.numeric(post.sample.combined[ii,'m'])
     sim.model$theta  <- as.numeric(post.sample.combined[ii,grep('theta\\[',colnames(post.sample.combined))])
-    sim.model$simulate('logk')
-#     sim.model$logk  <- as.numeric(post.sample.combined[ii,grep('logk\\[',colnames(post.sample.combined))])
-    sim.model$calculate('k')
+    sim.model$calculate('beta0')
+    sim.model$calculate('beta1')
+    sim.model$simulate('k')
     sim.model$simulate('p')
     ppmat[,i]  <- rbinom(constants$N,prob=unlist(sim.model$p),size=1)
 }
