@@ -2,7 +2,11 @@ library(nimbleCarbon)
 library(parallel)
 library(rcarbon)
 library(here)
-load(here('sim','simdata','simdata1_2.RData'))
+load(here('sim','simdata','simdata1.RData'))
+
+# Remove true.parameters from constants
+constants$mu_k  <- NULL
+constants$phi  <- NULL
 
 # Inits
 caldates  <- calibrate(d$cra,constants$cra_error)
@@ -39,22 +43,28 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 
 		for (j in 1:NSites)
 		{
+# 			logk[j] ~ dnorm(mean=mu_k,sd=sigma_k)
 			k[j] ~ dbeta(beta0,beta1)
+# 			k[j]  <- 1/(1+exp(-logk[j]))
 		}
 
-		mu_k ~ dbeta(9,2)
-		sigma_k ~ dexp(1/50)
-		beta0  <- mu_k * (sigma_k) + 1
-		beta1  <- (1 - mu_k) * (sigma_k) + 1
+		mu_k ~ dbeta(2,2)
+# 		mu_k ~ dnorm(0,1)
+# 		sigma_k ~ dexp(50)
+# 		sigma_k ~ dnorm(0,0.001)
+		phi  <- dgamma(5,0.1)
+		beta0  <- mu_k * (phi) + 1
+		beta1  <- (1 - mu_k) * (phi) + 1
 	})
 
 	#Define inits
 	inits  <- list()
 	inits$r  <- 0.0001
 	inits$m  <- 3000
-	inits$mu_k  <- 0.8
-	inits$sigma_k  <- 5
-	inits$k  <- rbeta(constants$NSites,(inits$mu_k*inits$sigma_k +1),((1-inits$mu_k)*(inits$sigma_k)+1))
+	inits$mu_k  <- 0.5
+	inits$sigma_k  <- 0.1
+# 	inits$logk  <- rnorm(constants$NSites,inits$mu_k,inits$sigma_k)
+	inits$k  <- rbeta(constants$NSites,(inits$mu_k*(1/sqrt(inits$sigma_k)) +1),((1-inits$mu_k)*(1/sqrt(inits$sigma_k))+1))
 	inits$theta  <- theta
 
 	#Setup MCMC
@@ -82,7 +92,8 @@ stopCluster(cl)
 # Diagnostic and Posterior Processing ----
 post.sample  <- coda::mcmc.list(out)
 rhats.sim1  <- coda::gelman.diag(post.sample)
-#  which(rhats.sim1[[1]][,1]>1.01) #only thetas
+which(rhats.sim1[[1]][,1]>1.01) #only thetas
+rhats.sim1[[1]][1:4,]
 
 # Store output ----
 post.sample.combined  <- do.call(rbind.data.frame,post.sample)

@@ -6,7 +6,7 @@ load(here('sim','simdata','simdata2.RData'))
 
 # Remove true parameter from constants
 constants$mu_k <- NULL
-constants$tau <- NULL
+constants$phi <- NULL
 
 # Inits
 caldates  <- calibrate(d$cra,constants$cra_error)
@@ -53,10 +53,9 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 # 		mu_k ~ dnorm(0,0.01)
 # 		sigma_k ~ dexp(1/50)
 # 		sigma_k ~ dexp(10)
-		sigma_k ~ dnorm(0,0.001)
-		tau  <- 1/sqrt(sigma_k)
-		beta0  <- mu_k * (tau) + 1
-		beta1  <- (1 - mu_k) * (tau) + 1
+		phi  ~ dgamma(5,0.1)
+		beta0  <- mu_k * (phi) + 1
+		beta1  <- (1 - mu_k) * (phi) + 1
 	})
 
 	#Define inits
@@ -64,8 +63,8 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 	inits$r  <- 0.0001
 	inits$m  <- 5500
 	inits$mu_k  <- 0.5
-	inits$sigma_k  <- 0.1
-	inits$k  <- rbeta(constants$NSites,(inits$mu_k*(1/sqrt(inits$sigma_k)) +1),((1-inits$mu_k)*(1/sqrt(inits$sigma_k))+1))
+	inits$phi  <- 10
+	inits$k  <- rbeta(constants$NSites,(inits$mu_k*(inits$phi) +1),((1-inits$mu_k)*(inits$phi)+1))
 # 	inits$logk  <- rnorm(constants$NSites,inits$mu_k,inits$sigma_k)
 	inits$theta  <- theta
 

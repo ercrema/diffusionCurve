@@ -37,20 +37,20 @@ diffusionModel  <- nimbleCode({
 # 	mu_k ~ dbeta(2,2) #Unimodal shape with low prob on 0 and 1
 # 	sigma_k ~ dnorm(0,0.0001)
 # 	tau  <- 1/sqrt(sigma_k) 
-	beta0  <- mu_k * tau + 1
-	beta1  <- (1-mu_k) * tau + 1
+	beta0  <- mu_k * phi + 1
+	beta1  <- (1-mu_k) * phi + 1
 # 	sigma_k ~ dinvgamma(5,5) #hyperprior for site prior
 })
 
 
 # Simulation 1 (based on Case Study I - Japan) ----
 # Model Parameters
-r  <- 0.004
-m  <- 2700
-mu_k  <- 0.8
-tau  <- 20
+r  <- 0.01
+m  <- 2600
+mu_k  <- 0.75
+phi  <- 10
 
-true.param.1  <- list(r=r,m=m,mu_k=mu_k,tau=tau)
+true.param.1  <- list(r=r,m=m,mu_k=mu_k,phi=phi)
 
 # Prior Settings for m
 midPrior  <- 3000
@@ -76,7 +76,7 @@ constants$NSites  <- nsites
 constants$siteID  <- c(1:constants$NSites,sample(1:constants$NSites,size=constants$N-constants$NSites,replace=TRUE)) #Assign SiteIDs
 constants$cra_error  <- rep(20,constants$N) #Constant 14C error of 20yrs
 constants$mu_k  <- mu_k
-constants$tau  <- tau
+constants$phi  <- phi
 
 # Simulate Response Variable
 diffusionModel.sim  <- nimbleModel(diffusionModel,constants=constants)
@@ -110,8 +110,8 @@ save(constants,d,true.param.1,file=here('sim','simdata','simdata1.RData'))
 r  <- 0.008
 m  <- 4500
 mu_k  <- 0.9
-tau  <- 40
-true.param.2  <- list(r=r,m=m,mu_k=mu_k,tau=tau)
+phi  <- 40
+true.param.2  <- list(r=r,m=m,mu_k=mu_k,phi=phi)
 # Prior Settings for m
 midPrior  <- 3500
 midSD  <- 500
@@ -136,7 +136,7 @@ constants$NSites  <- nsites
 constants$siteID  <- c(1:constants$NSites,sample(1:constants$NSites,size=constants$N-constants$NSites,replace=TRUE)) #Assign SiteIDs
 constants$cra_error  <- rep(20,constants$N) #Constant 14C error of 20yrs
 constants$mu_k  <- mu_k
-constants$tau  <- tau
+constants$phi  <- phi
 
 # Simulate Response Variable
 diffusionModel.sim  <- nimbleModel(diffusionModel,constants=constants)
