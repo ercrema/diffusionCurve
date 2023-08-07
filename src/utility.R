@@ -95,7 +95,7 @@ plotPcheck <- function(x,calendar,interval=0.9,envelope.col='lightgrey',positive
 		if (any(ticks==0)){ticks[which(ticks==0)] <- 1}
 		tickLoc  <- BCADtoBP(ticks)
 		ticks  <- abs(ticks)
-		xlab  <- 'BC/AD'
+		xlab  <- 'BCE/CE'
 	}
 
 
