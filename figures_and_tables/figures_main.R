@@ -17,6 +17,13 @@ load(here('results','post_jp_abot.RData'))
 load(here('results','ppc_gb_abot.RData'))
 load(here('results','post_gb_abot.RData'))
 load(here('results','post_icar_burial.RData'))
+load(here('sim','simdata','simdata1.RData'))
+load(here('sim','simdata','simdata2.RData'))
+load(here('sim','simdata','simdata3.RData'))
+load(here('sim','results','post_sim1.RData'))
+load(here('sim','results','post_sim2.RData'))
+load(here('sim','results','post_icar_sim3.RData'))
+
 
 # Figure 1 (Distribution Maps) ----
 win  <- ne_countries(scale=10,returnclass='sf') |> st_combine()
@@ -57,20 +64,43 @@ box()
 legend(x='topleft',legend=c('Sampling Sites (Seeds)','Sampling Sites (Burials)'),pch=c(1,2),bg='white')
 dev.off()
 
-# Figure 2 (Posterior Predictive Checks/Japan) ----
+# Figure 2 ----
+pdf(file = here('figures_and_tables','figure2.pdf'),width=5.5,height=6.5,pointsize=9)
+par(mfrow=c(3,1),mar=c(5,3,2,1))
+
+plot.fitted(r=post.sample.core.sim1[,'r'],m=post.sample.core.sim1[,'m'],mu_k=post.sample.core.sim1[,'mu_k'],timeRange=c(4000,1700),calendar = 'BCAD')
+lines(4000:1700,sigmoid(x=4000:1700,m=true.param.1$m,k=true.param.1$mu_k,r=true.param.1$r),lty=3,col=2,lwd=2)
+
+plot.fitted(r=post.sample.core.sim2[,'r'],m=post.sample.core.sim2[,'m'],mu_k=post.sample.core.sim2[,'mu_k'],timeRange=c(7000,3000),calendar = 'BCAD')
+lines(7000:3000,sigmoid(x=7000:3000,m=true.param.2$m,k=true.param.2$mu_k,r=true.param.2$r),lty=3,col=2,lwd=2)
+
+
+tblocks.sim3 <- seq(constants.icar.sim3$a,constants.icar.sim3$b,by=-constants.icar.sim3$res)
+plot(tblocks.sim3,apply(post.sample.combined.icar.sim3[,1:constants.icar.sim3$n.tblocks],2,mean),pch=20,xlim=c(constants.icar.sim3$a,constants.icar.sim3$b),ylim=c(0,1),type='n',xlab='BC',ylab='Estimated Proportion',axes=F)
+for (i in 1:constants.icar.sim3$n.tblocks)
+{
+	rect(xleft=tblocks.sim3[i]+45,xright=tblocks.sim3[i]-45,ybottom=quantile(post.sample.combined.icar.sim3[,i],0.025),ytop=quantile(post.sample.combined.icar.sim3[,i],0.975),border=NA,col='lightblue')
+	rect(xleft=tblocks.sim3[i]+45,xright=tblocks.sim3[i]-45,ybottom=quantile(post.sample.combined.icar.sim3[,i],0.25),ytop=quantile(post.sample.combined.icar.sim3[,i],0.75),border=NA,col='steelblue')
+
+}
+lines(tblocks.sim3,apply(post.sample.combined.icar.sim3[,1:constants.icar.sim3$n.tblocks],2,mean),pch=20,type='b')
+lines(timeRange[1]:timeRange[2],Pseq,col=2,lty=3,lwd=2)
+legend(x=2600,y=0.85,legend=c('95% HPD','50% HPD'),fill=c('lightblue','steelblue',1),cex=1,bty='n')
+box()
+axis(1)
+axis(2)
+dev.off()
+
+
+
+# Figure 3 (Posterior Predictive Checks/Japan) ----
 cal.jp <- calibrate(jpdata$C14Age,jpdata$C14Error) |> medCal()
-r.jp  <- post.sample.core.jp.abot[,'r']
-k.jp  <- post.sample.core.jp.abot[,'mu_k'] |> logistic()
-m.jp  <- post.sample.core.jp.abot[,'m'] |> round()
-mat.jp  <- sapply(1:nrow(post.sample.core.jp.abot),function(x,y,r,m,k){sigmoid(x=y,r=r[x],m=m[x],k=k[x])},y=4000:1700,r=r.jp,m=m.jp,k=k.jp)
-pdf(file = here('figures_and_tables','figure2.pdf'),width=5.5,height=4,pointsize=8)
+pdf(file = here('figures_and_tables','figure3.pdf'),width=5.5,height=4,pointsize=8)
 plotPcheck(ppc.jp.abot,calendar='BCAD')
 axis(3)
 axis(3,at=c(seq(5000,100,-100)),labels=NA,tck=-0.01)
 axis(1,at=BCADtoBP(c(seq(-3000,-100,100),seq(100,1000,100))),labels=NA,tck=-0.01)
-
 mtext(side=3,line=3,'cal BP')
-lines(4000:1700,apply(mat.jp,1,mean),lty=2)
 points(x=cal.jp[which(jpdata$rice_nuts==1)],y=rep(0.98,times=sum(jpdata$rice_nuts==1)),pch="+",col=rgb(0,0,0,0.2))
 points(x=cal.jp[which(jpdata$rice_nuts==0)],y=rep(0.02,times=sum(jpdata$rice_nuts==0)),pch="+",col=rgb(0,0,0,0.2))
 legend(x=4000,y=0.95,legend=c('Observed SPD','Posterior Mean'),lty=c(1,2),lwd=c(2,1),bty='n')
@@ -78,20 +108,14 @@ legend(x=4000,y=0.85,legend=c('90% Prediction Envelope','Positive Deviation','Ne
 legend(x=3972,y=0.68,legend=c('Median Dates'),pch=3,bty='n',cex=1)
 dev.off()
 
-# Figure 3 (Posterior Predictive Checks/Britain) ----
+# Figure 4 (Posterior Predictive Checks/Britain) ----
 cal.gb <- calibrate(gbdata$CRA,gbdata$Error) |> medCal()
-r.gb  <- post.sample.core.gb.abot[,'r']
-k.gb  <- post.sample.core.gb.abot[,'mu_k'] |> logistic()
-m.gb  <- post.sample.core.gb.abot[,'m'] |> round()
-mat.gb  <- sapply(1:nrow(post.sample.core.gb.abot),function(x,y,r,m,k){sigmoid(x=y,r=r[x],m=m[x],k=k[x])},y=7000:3000,r=r.gb,m=m.gb,k=k.gb)
-
-pdf(file = here('figures_and_tables','figure3.pdf'),width=5.5,height=4,pointsize=8)
+pdf(file = here('figures_and_tables','figure4.pdf'),width=5.5,height=4,pointsize=8)
 plotPcheck(ppc.gb.abot,calendar='BCAD')
 axis(3)
 axis(3,at=c(seq(8000,100,-100)),labels=NA,tck=-0.01)
 axis(1,at=BCADtoBP(c(seq(-6000,-100,100),seq(100,1000,100))),labels=NA,tck=-0.01)
 mtext(side=3,line=3,'cal BP')
-lines(7000:3000,apply(mat.gb,1,mean),lty=2)
 points(x=cal.gb[which(gbdata$cat2=='Wheat + Barley')],y=rep(0.98,times=sum(gbdata$cat2=='Wheat + Barley')),pch="+",col=rgb(0,0,0,0.2))
 points(x=cal.gb[which(gbdata$cat2=='Hazelnut')],y=rep(0.02,times=sum(gbdata$cat2=='Hazelnut')),pch="+",col=rgb(0,0,0,0.2))
 legend(x=6000,y=0.95,legend=c('Observed SPD','Posterior Mean'),lty=c(1,2),lwd=c(2,1),bty='n')
@@ -99,13 +123,13 @@ legend(x=6000,y=0.85,legend=c('90% Prediction Envelope','Positive Deviation','Ne
 legend(x=5972,y=0.68,legend=c('Median Dates'),pch=3,bty='n',cex=1)
 dev.off()
 
-# Figure 4 (Posterior ICAR) ----
+# Figure 5 (Posterior ICAR) ----
 tblocks <- seq(constants.icar$a,constants.icar$b,by=-constants.icar$res)
 cal.burial <- calibrate(burial$CRA,burial$Error) |> medCal()
 
 
 pdf(here('figures_and_tables','figure4.pdf'),width=5.5,height=4.5,pointsize=8)
-plot(tblocks,apply(post.sample.combined.icar[,1:constants.icar$n.tblocks],2,mean),pch=20,xlim=c(constants.icar$a,constants.icar$b),ylim=c(0,1),type='n',xlab='BC',ylab='Estimated Proportion of Cremations',axes=F)
+plot(tblocks,apply(post.sample.combined.icar[,1:constants.icar$n.tblocks],2,mean),pch=20,xlim=c(constants.icar$a,constants.icar$b),ylim=c(0,1),type='n',xlab='BCE',ylab='Estimated Proportion of Cremations',axes=F)
 for (i in 1:constants.icar$n.tblocks)
 {
 	rect(xleft=tblocks[i]+45,xright=tblocks[i]-45,ybottom=quantile(post.sample.combined.icar[,i],0.025),ytop=quantile(post.sample.combined.icar[,i],0.975),border=NA,col='lightblue')
