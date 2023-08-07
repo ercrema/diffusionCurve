@@ -58,22 +58,30 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 
 		for (j in 1:NSites)
 		{
+# 			logk[j] ~ dnorm(mean=mu_k,sd=sigma_k)
+# 			k[j] <- 1/(1+exp(-logk[j]))
 			k[j] ~ dbeta(beta0,beta1)
 		}
 
-		mu_k ~ dbeta(9,2) 
-		sigma_k ~ dexp(1/50)
-		beta0  <- mu_k * (sigma_k) + 1
-		beta1  <- (1 - mu_k) * (sigma_k) + 1
+		mu_k ~ dbeta(2,2) 
+# 		mu_k ~ dnorm(0,1)
+# 		sigma_k ~ dexp(1/50)
+# 		sigma_k ~ dexp(10)
+# 		sigma_k ~ dnorm(0,0.001)
+# 		tau  <- 1/sqrt(sigma_k)
+		phi ~ dgamma(5,0.1)
+		beta0  <- mu_k * (phi) + 1
+		beta1  <- (1 - mu_k) * (phi) + 1
 	})
 
 	#Define inits
 	inits  <- list()
 	inits$r  <- 0.0001
 	inits$m  <- 3000
-	inits$mu_k  <- 0.7
-	inits$sigma_k  <- 1
-	inits$k  <- rbeta(constants$NSites,(inits$mu_k*inits$sigma_k +1),((1-inits$mu_k)*(inits$sigma_k)+1))
+	inits$mu_k  <- 0.5
+	inits$phi  <- 10
+# 	inits$logk ~ rnorm(constants$NSites,inits$mu,inits$sigma_k)
+	inits$k  <- rbeta(constants$NSites,(inits$mu_k*(inits$phi) +1),((1-inits$mu_k)*(inits$phi)+1))
 	inits$theta  <- theta
 
 	#Setup MCMC
@@ -101,7 +109,7 @@ stopCluster(cl)
 # Diagnostic and Posterior Processing ----
 post.sample  <- coda::mcmc.list(out)
 rhats.jp.abot  <- coda::gelman.diag(post.sample)
-# which(rhats.jp.abot[[1]][,1]>1.01) #only thetas
+which(rhats.jp.abot[[1]][,1]>1.01) #only thetas
 
 # Store output ----
 post.sample.combined  <- do.call(rbind.data.frame,post.sample)
@@ -112,7 +120,8 @@ post.sample.core.jp.abot  <- post.sample.combined[,!grepl('theta',colnames(post.
 # Posterior Predictive Checks ----
 nsim  <- 1000 #Number of posterior simulations
 ppmat  <- matrix(NA,nrow=constants$N,ncol=nsim) #Matrix storing predictions
-
+ppmat.params  <- matrix(NA,ncol=4,nrow=nsim) |> as.data.frame()
+colnames(ppmat.params)  <- c('r','m','mu_k','phi')
 # Simulation Model
 adoptionSimModel  <- nimbleCode({
 	for (i in 1:N)
@@ -134,13 +143,17 @@ adoptionSimModel  <- nimbleCode({
 		k[j] ~ dbeta(beta0,beta1)
 	}
 
-	mu_k ~ dbeta(9,2)
-	sigma_k ~ dexp(1/50)
-	beta0  <- mu_k * (sigma_k) + 1
-	beta1  <- (1 - mu_k) * (sigma_k) + 1
+	mu_k ~ dbeta(2,2)
+	phi ~ dgamma(5,0.1)
+	beta0  <- mu_k * (phi) + 1
+	beta1  <- (1 - mu_k) * (phi) + 1
 })
 
 s.index  <- sample((niter-nburnin)*nchains/thin,size=nsim)
+ppmat.params$phi  <- as.numeric(post.sample.combined[s.index,'phi'])
+ppmat.params$mu_k  <- as.numeric(post.sample.combined[s.index,'mu_k'])
+ppmat.params$r  <- as.numeric(post.sample.combined[s.index,'r'])
+ppmat.params$m  <- as.numeric(post.sample.combined[s.index,'m'])
 
 sim.model  <- nimbleModel(adoptionSimModel,constants=constants,data=d)
 
@@ -150,7 +163,7 @@ for (i in 1:nsim)
 {
     setTxtProgressBar(pb, i)
     ii  <- s.index[i]
-    sim.model$sigma_k  <- as.numeric(post.sample.combined[ii,'sigma_k'])
+    sim.model$phi  <- as.numeric(post.sample.combined[ii,'phi'])
     sim.model$mu_k  <- as.numeric(post.sample.combined[ii,'mu_k'])
     sim.model$r  <- as.numeric(post.sample.combined[ii,'r'])
     sim.model$m  <- as.numeric(post.sample.combined[ii,'m'])
@@ -164,9 +177,10 @@ for (i in 1:nsim)
 
 # Rename before saving
 ppmat.jp.abot  <- ppmat
+ppmat.params.jp.abot  <- ppmat.params
 constants.jp.abot  <- constants
 d.jp.abot  <- d
 
 
-save(constants.jp.abot,d.jp.abot,ppmat.jp.abot,file=here('results','ppcheck_jp_abot.RData'))
+save(constants.jp.abot,d.jp.abot,ppmat.jp.abot,ppmat.params.jp.abot,file=here('results','ppcheck_jp_abot.RData'))
 save(rhats.jp.abot,post.sample.core.jp.abot,file=here('results','post_jp_abot.RData'))

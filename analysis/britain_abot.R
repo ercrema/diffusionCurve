@@ -70,10 +70,11 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 # 		mu_k ~ dnorm(0,1)
 # 		sigma_k ~ dexp(1/50)
 # 		sigma_k ~ dexp(10)
-		sigma_k ~ dnorm(0,0.001)
-		tau  <- 1/sqrt(sigma_k)
-		beta0  <- mu_k * (tau) + 1
-		beta1  <- (1 - mu_k) * (tau) + 1
+# 		sigma_k ~ dnorm(0,0.001)
+# 		tau  <- 1/sqrt(sigma_k)
+		phi ~ dgamma(5,0.1)
+		beta0  <- mu_k * (phi) + 1
+		beta1  <- (1 - mu_k) * (phi) + 1
 	})
 
 	#Define inits
@@ -81,9 +82,9 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 	inits$r  <- 0.0001
 	inits$m  <- 5500
 	inits$mu_k  <- 0.7
-	inits$sigma_k  <- 0.1
+	inits$phi  <- 10
 # 	inits$logk ~ rnorm(constants$NSites,inits$mu_k,sigma_k)
-	inits$k  <- rbeta(constants$NSites,(inits$mu_k*(1/sqrt(inits$sigma_k)) +1),((1-inits$mu_k)*(1/sqrt(inits$sigma_k))+1))
+	inits$k  <- rbeta(constants$NSites,(inits$mu_k*(inits$phi) +1),((1-inits$mu_k)*(inits$phi)+1))
 	inits$theta  <- theta
 
 	#Setup MCMC
@@ -116,13 +117,13 @@ rhats.gb.abot  <- coda::gelman.diag(post.sample)
 # Combined output ----
 post.sample.combined  <- do.call(rbind.data.frame,post.sample)
 post.sample.theta  <- post.sample.combined[,grep('theta',colnames(post.sample.combined))]
-post.sample.core.gb.abot  <- post.sample.combined[,!grepl('theta|logk',colnames(post.sample.combined))]
+post.sample.core.gb.abot  <- post.sample.combined[,!grepl('theta',colnames(post.sample.combined))]
 
 # Posterior Predictive Checks ----
 nsim  <- 1000 #Number of posterior simulations
 ppmat  <- matrix(NA,nrow=constants$N,ncol=nsim) #Matrix storing predictions
 ppmat.params  <- matrix(NA,ncol=4,nrow=nsim) |> as.data.frame()
-colnames(ppmat.params)  <- c('r','m','mu_k','sigm_k')
+colnames(ppmat.params)  <- c('r','m','mu_k','phi')
 
 # Simulation Model
 adoptionSimModel  <- nimbleCode({
@@ -146,14 +147,13 @@ adoptionSimModel  <- nimbleCode({
 	}
 
 	mu_k ~ dbeta(2,2)
-	sigma_k ~ dnorm(0,0.001)
-	tau  <- 1/sqrt(sigma_k)
-	beta0  <- mu_k * (tau) + 1
-	beta1  <- (1 - mu_k) * (tau) + 1
+	phi ~ dgamma(5,0.1)
+	beta0  <- mu_k * (phi) + 1
+	beta1  <- (1 - mu_k) * (phi) + 1
 })
 
 s.index  <- sample((niter-nburnin)*nchains/thin,size=nsim)
-ppmat.params$sigma_k  <- as.numeric(post.sample.combined[s.index,'sigma_k'])
+ppmat.params$phi  <- as.numeric(post.sample.combined[s.index,'phi'])
 ppmat.params$mu_k  <- as.numeric(post.sample.combined[s.index,'mu_k'])
 ppmat.params$r  <- as.numeric(post.sample.combined[s.index,'r'])
 ppmat.params$m  <- as.numeric(post.sample.combined[s.index,'m'])
@@ -166,12 +166,11 @@ for (i in 1:nsim)
 {
     setTxtProgressBar(pb, i)
     ii  <- s.index[i]
-    sim.model$sigma_k  <- as.numeric(post.sample.combined[ii,'sigma_k'])
+    sim.model$phi  <- as.numeric(post.sample.combined[ii,'phi'])
     sim.model$mu_k  <- as.numeric(post.sample.combined[ii,'mu_k'])
     sim.model$r  <- as.numeric(post.sample.combined[ii,'r'])
     sim.model$m  <- as.numeric(post.sample.combined[ii,'m'])
     sim.model$theta  <- as.numeric(post.sample.combined[ii,grep('theta\\[',colnames(post.sample.combined))])
-    sim.model$calculate('tau')
     sim.model$calculate('beta0')
     sim.model$calculate('beta1')
     sim.model$simulate('k')
