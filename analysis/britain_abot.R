@@ -185,5 +185,5 @@ constants.gb.abot  <- constants
 d.gb.abot  <- d
 
 # Store output ----
-save(constants.gb.abot,d.gb.abot,ppmat.gb.abot,file=here('results','ppcheck_gb_abot.RData'))
+save(constants.gb.abot,d.gb.abot,ppmat.params.gb.abot,file=here('results','ppcheck_gb_abot.RData'))
 save(rhats.gb.abot,post.sample.core.gb.abot,file=here('results','post_gb_abot.RData'))
