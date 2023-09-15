@@ -46,14 +46,14 @@ diffusionModel  <- nimbleCode({
 # Simulation 1 (based on Case Study I - Japan) ----
 # Model Parameters
 r  <- 0.01
-m  <- 2600
-mu_k  <- 0.75
-phi  <- 10
+m  <- 2900
+mu_k  <- 0.65
+phi  <- 50
 
 true.param.1  <- list(r=r,m=m,mu_k=mu_k,phi=phi)
 
 # Prior Settings for m
-midPrior  <- 3000
+midPrior  <- 3200
 midSD  <- 500
 
 # Sample sizes
@@ -95,7 +95,7 @@ diffusionModel.sim$calculate('beta0')
 diffusionModel.sim$calculate('beta1')
 diffusionModel.sim$simulate('k')
 diffusionModel.sim$simulate('p')
-plot(sort(diffusionModel.sim$theta),diffusionModel.sim$p[order(diffusionModel.sim$theta)],xlim=c(5000,1500))
+plot(sort(diffusionModel.sim$theta),diffusionModel.sim$p[order(diffusionModel.sim$theta)],xlim=c(4000,1700))
 diffusionModel.sim$simulate('y')
 
 # Store Output
@@ -109,7 +109,7 @@ save(constants,d,true.param.1,file=here('sim','simdata','simdata1.RData'))
 # Model Parameters
 r  <- 0.008
 m  <- 4500
-mu_k  <- 0.9
+mu_k  <- 0.8
 phi  <- 40
 true.param.2  <- list(r=r,m=m,mu_k=mu_k,phi=phi)
 # Prior Settings for m

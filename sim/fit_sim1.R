@@ -52,7 +52,7 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 # 		mu_k ~ dnorm(0,1)
 # 		sigma_k ~ dexp(50)
 # 		sigma_k ~ dnorm(0,0.001)
-		phi  <- dgamma(5,0.1)
+		phi ~ dgamma(5,0.1)
 		beta0  <- mu_k * (phi) + 1
 		beta1  <- (1 - mu_k) * (phi) + 1
 	})
@@ -62,9 +62,9 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 	inits$r  <- 0.0001
 	inits$m  <- 3000
 	inits$mu_k  <- 0.5
-	inits$sigma_k  <- 0.1
+	inits$phi  <- 10
 # 	inits$logk  <- rnorm(constants$NSites,inits$mu_k,inits$sigma_k)
-	inits$k  <- rbeta(constants$NSites,(inits$mu_k*(1/sqrt(inits$sigma_k)) +1),((1-inits$mu_k)*(1/sqrt(inits$sigma_k))+1))
+	inits$k  <- rbeta(constants$NSites,(inits$mu_k*(inits$phi) +1),((1-inits$mu_k)*(inits$phi)+1))
 	inits$theta  <- theta
 
 	#Setup MCMC

@@ -9,7 +9,7 @@ sigmoid <- function(x,k,r,m)
 	return(k/(1+exp(r*(x-m))))
 } 
 
-plot.fitted  <- function(r,m,mu_k,timeRange,calendar='BP',nsample=NULL,interval=0.95)
+plot.fitted  <- function(r,m,mu_k,timeRange,calendar='BP',nsample=NULL,interval=0.95,xlab=NULL,ylab='Probability')
 {
 	# Setup
 	require(rcarbon)
@@ -31,7 +31,7 @@ plot.fitted  <- function(r,m,mu_k,timeRange,calendar='BP',nsample=NULL,interval=
 	{
 		ticks  <- rev(pretty(timeRange))
 		ticks.loc  <- ticks
-		calCaption  <- 'BP'
+		if(is.null(xlab)){xlab  <- 'BP'}
 	}
 	if (calendar=='BCAD')
 	{
@@ -39,12 +39,12 @@ plot.fitted  <- function(r,m,mu_k,timeRange,calendar='BP',nsample=NULL,interval=
 		if (any(ticks==0)){ticks[which(ticks==0)] <- 1}
 		ticks.loc  <- BCADtoBP(ticks)
 		ticks  <- abs(ticks)
-		calCaption  <- 'BCE/CE'
+		if(is.null(xlab)){xlab  <- 'BCE/CE'}
 	}
 	mean.mat  <- apply(mat,1,mean)
 	lo.mat  <- apply(mat,1,quantile,prob=(1-interval)/2)
 	hi.mat  <- apply(mat,1,quantile,prob=interval + (1-interval)/2)
-	plot(NULL,xlim=timeRange,ylim=c(0,1),axes=F,xlab=calCaption,ylab='Probability')
+	plot(NULL,xlim=timeRange,ylim=c(0,1),axes=F,xlab=xlab,ylab=ylab)
 	polygon(c(timeRange[1]:timeRange[2],timeRange[2]:timeRange[1]),c(lo.mat,rev(hi.mat)),border=NA,col='lightblue')
 	lines(timeRange[1]:timeRange[2],mean.mat,lwd=2,lty=2)
 	axis(2)
