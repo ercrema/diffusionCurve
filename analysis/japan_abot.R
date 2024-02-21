@@ -116,6 +116,9 @@ post.sample.combined  <- do.call(rbind.data.frame,post.sample)
 post.sample.theta  <- post.sample.combined[,grep('theta',colnames(post.sample.combined))]
 post.sample.core.jp.abot  <- post.sample.combined[,!grepl('theta',colnames(post.sample.combined))]
 
+# Agreement index for theta ----
+agree.jp.abot <- agreementIndex(CRA=d$cra,CRAError=constants$cra_error,theta=post.sample.theta)
+# min(agree.jp.abot$agreement) 90
 
 # Posterior Predictive Checks ----
 nsim  <- 1000 #Number of posterior simulations
@@ -183,4 +186,4 @@ d.jp.abot  <- d
 
 
 save(constants.jp.abot,d.jp.abot,ppmat.jp.abot,ppmat.params.jp.abot,file=here('results','ppcheck_jp_abot.RData'))
-save(rhats.jp.abot,post.sample.core.jp.abot,file=here('results','post_jp_abot.RData'))
+save(agree.jp.abot,rhats.jp.abot,post.sample.core.jp.abot,file=here('results','post_jp_abot.RData'))

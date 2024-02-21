@@ -122,10 +122,10 @@ rhats  <- coda::gelman.diag(post.sample)
 # Store output ----
 post.sample.combined.icar  <- do.call(rbind.data.frame,post.sample)
 agr  <- agreementIndex(d$cra,d$cra_error,theta=post.sample.combined.icar[,grep('theta',colnames(post.sample.combined.icar))])
-min(agr$agreement)
+min(agr$agreement) #min 71
 # theta show good agreement index, with smallest value equal to 72, indicating that the model per se is not problematic
 post.sample.combined.icar  <- post.sample.combined.icar[,grep('pseq',colnames(post.sample.combined.icar))]
 constants.icar  <- constants
 rhats.icar  <- rhats
-save(rhats.icar,post.sample.combined.icar,constants.icar,file=here('results','post_icar_burial.RData'))
+save(agr,rhats.icar,post.sample.combined.icar,constants.icar,file=here('results','post_icar_burial.RData'))
 

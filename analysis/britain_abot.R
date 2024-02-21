@@ -119,6 +119,10 @@ post.sample.combined  <- do.call(rbind.data.frame,post.sample)
 post.sample.theta  <- post.sample.combined[,grep('theta',colnames(post.sample.combined))]
 post.sample.core.gb.abot  <- post.sample.combined[,!grepl('theta',colnames(post.sample.combined))]
 
+# Agreement index for theta ----
+agree.gb.abot <- agreementIndex(CRA=d$cra,CRAError=constants$cra_error,theta=post.sample.theta)
+# min(agree.gb.abot$agreement) #minimum 93
+
 # Posterior Predictive Checks ----
 nsim  <- 1000 #Number of posterior simulations
 ppmat  <- matrix(NA,nrow=constants$N,ncol=nsim) #Matrix storing predictions
@@ -186,4 +190,4 @@ d.gb.abot  <- d
 
 # Store output ----
 save(constants.gb.abot,d.gb.abot,ppmat.params.gb.abot,file=here('results','ppcheck_gb_abot.RData'))
-save(rhats.gb.abot,post.sample.core.gb.abot,file=here('results','post_gb_abot.RData'))
+save(agree.gb.abot,rhats.gb.abot,post.sample.core.gb.abot,file=here('results','post_gb_abot.RData'))
