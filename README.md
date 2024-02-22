@@ -16,11 +16,13 @@ The repository is organised into the following six main directories:
 ## Dataset
 Three empirical case studies case studies are examined:
 
-_Case Study I_ :
+_Case Study 1a_ :
  - Diffusion of Rice agriculture in Prehistoric Japan 4000-1700 cal BP (`jpdata.RData`).
+   
+_Case Study 1b_ :
  - Diffusion of Farming in Prehistoric Britain, 7000-3000 cal BP (`gbdata.RData`).
    
-_Case Study II_:
+_Case Study 2_:
  - Diffusion cycles of Cremation and Inhumation in Prehistoric Britain, 5500-2200 cal BP `burialdata.RData`. 
 
 Empirical datasets for case studies I and II were obtained from the following resources and publications:
