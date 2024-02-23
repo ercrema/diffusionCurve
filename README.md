@@ -31,10 +31,10 @@ Empirical datasets for case studies I and II were obtained from the following re
 - Bevan, A., Colledge, S., Fuller, D., Fyfe, R., Shennan, S. Stevens, C.(2017). Holocene Fluctuations in Human Population Demonstrate Repeated Links to Food Production and Climate. Proceedings of the National Academy of Sciences 114(49) : E10524–31. https://doi.org/10.1073/pnas.1709190114. (retrieved directly [from UCL Discovery Repository](https://discovery.ucl.ac.uk/id/eprint/10025178/4/Bevan_gbie14Csub.zip) in the script `/data/gb_clean.R`)
   
 ## Simulation
-Simulated datasets with sigmoid growth (`simdata1.RData` and `simdata2.RData`) were generated using the script `simulate_sigmoid.R` using sample sizes and number of locations equal to the two case studies (`jpdata.RData` and `gbdata.RData`). The script `simulate_icar.R` generates instead an arbitrary non-linear diffusion dynamic (`simdata3.RData`) using the same sample size as the burial dataset (`burialdata.RData`).   
+Simulated datasets with sigmoid growth (`simdata1a.RData` and `simdata1b.RData`) were generated using the script `simulate_sigmoid.R` using sample sizes and number of locations equal to the two case studies (`jpdata.RData` and `gbdata.RData`). The script `simulate_icar.R` generates instead an arbitrary non-linear diffusion dynamic (`simdata2.RData`) using the same sample size as the burial dataset (`burialdata.RData`).   
 
 ## Bayesian Analysis
-R scripts for core Bayesian analyses on the empirical case studies and simulated datasets are stored respectively in the `analysis` and `sim` directories. Model fitting is executed via Nimble probabilistic programming language and requires between 24 and 48 hours to be completed. In the case of the simulated datasets and case study the output of each script (`fit_sim1.R`,`fit_sim2.R`, `fit_sim3.R`,and `burial_icar.R`) are stored in single R image files (`post_sim1.RData`, `post_sim2.RData`,`post_icar_sim3.RData`,and `post_icar_burial.RData`). In the case of the sigmoid models of case study I, the core scripts `japan_abot.R` and `britain_abot.R` produces two R image files respectively, one containing the posterior of the parameters (`post_jp_abot.RData` and `post_gb_abot.RData`) and the other containing 1,000 sets of simulated data points from random samples of the posterior parameters (`ppcheck_jp_abot.RData` and `ppcheck_gb_abot.RData`). The latter is then read by a dedicated R script (`post_check_jp_abot.R` and `post_check_gb_abot.R`) which executes the posterior predictive checks (i.e. by generating envelops of simulated proportion summed probability distribution of radiocarbon dates) and stores the output into another R image file (`ppc_jp_abot.RData` and `ppc_gb_abot.RData`).  
+R scripts for core Bayesian analyses on the empirical case studies and simulated datasets are stored respectively in the `analysis` and `sim` directories. Model fitting is executed via Nimble probabilistic programming language and requires around 24 to be completed. In the case of the simulated datasets and case study 2 the output of each script (`fit_sim1a.R`,`fit_sim1b.R`, `fit_sim2.R` and `burial_icar.R`) are stored within individual R image files (`post_sim1a.RData`, `post_sim1b.RData`,  `post_icar_sim2.RData`  and `post_icar_burial.RData` ). In the case of the sigmoid models of case studies 1a and 1b, the core scripts `japan_abot.R` and `britain_abot.R` produces two R image files respectively, one containing the posterior of the parameters (`post_jp_abot.RData` and `post_gb_abot.RData`) and the other containing 1,000 sets of simulated data points from random samples of the posterior parameters (`ppcheck_jp_abot.RData` and `ppcheck_gb_abot.RData`). The latter is then read by a dedicated R script (`post_check_jp_abot.R` and `post_check_gb_abot.R`) which executes the posterior predictive checks (i.e. by generating envelops of simulated proportion summed probability distribution of radiocarbon dates) and stores the output into another R image file (`ppc_jp_abot.RData` and `ppc_gb_abot.RData`).  
 
 ## File Structure
 
@@ -46,11 +46,11 @@ R scripts for core Bayesian analyses on the empirical case studies and simulated
  - `post_check_jp_abot.R` ... runs posterior predictive checks on `ppc_jp_abot.RData`; outputs `ppcheck_jp_abot.RData`
 ### data
  - `burial_clean.R` ... reads and cleans `burialdates.csv`; outputs `burialdata.RData`  
- - `burialdata.RData` ... burial data for case study II
+ - `burialdata.RData` ... burial data for case study 2
  - `gb_clean.R` ... downloads and processes data for case study I, Britain; outputs `gbdata.RData` 
- - `gbdata.RData` ... archaeobotanical data for case study I, Britain.
+ - `gbdata.RData` ... archaeobotanical data for case study 1a, Britain.
  - `jp_clean.R` ... reads, cleans, and combines `R14CDB.csv`, `c14db_1.1.0.csv`, and `Taxa_Edible_Classifications.csv` ; outputs `jpdata.RData` 
- - `jpdata.RData` ... archaeobotanical data for case study I, Japan.
+ - `jpdata.RData` ... archaeobotanical data for case study 1b, Japan.
  -  _raw_
      - `R14CDB.csv` ... rice radiocarbon database, obtained from https://github.com/ercrema/yayoi_rice_dispersal
      - `Taxa_Edible_Classifications.csv` ... lookup table to classify archaeobotanical samples into rice and wild nuts categories
@@ -65,27 +65,27 @@ R scripts for core Bayesian analyses on the empirical case studies and simulated
   - `table_main.R` ... R script for generating table 1
   - `table1.csv` ... table 1
 ### results 
-  - `post_gb_abot.RData` ... posterior estimates for the hierarchical sigmoid model, case Study I, Britain. 
-  - `post_icar_burial.RData`  ... posterior estimates for the ICAR model, case Study II.
-  - `post_jp_abot.RData`  ... posterior estimates for the hierarchical sigmoid model, case Study I, Britain.
-  - `ppc_gb_abot.RData` ... posterior predictive estimates for the hierarchical sigmoid model, case Study I, Britain. 
-  - `ppc_jp_abot.RData` ... posterior predictive estimates for the hierarchical sigmoid model, case Study I, Japan. 
-  - `ppcheck_gb_abot.RData` ... posterior predictive checks for the hierarchical sigmoid model, case Study I, Britain.  
-  - `ppcheck_jp_abot.RData` ... posterior predictive checks for the hierarchical sigmoid model, case Study I, Japan.  
+  - `post_gb_abot.RData` ... posterior estimates for the hierarchical sigmoid model, case Study 1a, Britain. 
+  - `post_icar_burial.RData`  ... posterior estimates for the ICAR model, case Study 2.
+  - `post_jp_abot.RData`  ... posterior estimates for the hierarchical sigmoid model, case Study 1a, Britain.
+  - `ppc_gb_abot.RData` ... posterior predictive estimates for the hierarchical sigmoid model, case Study 1a, Britain. 
+  - `ppc_jp_abot.RData` ... posterior predictive estimates for the hierarchical sigmoid model, case Study 1b Japan. 
+  - `ppcheck_gb_abot.RData` ... posterior predictive checks for the hierarchical sigmoid model, case Study 1a, Britain.  
+  - `ppcheck_jp_abot.RData` ... posterior predictive checks for the hierarchical sigmoid model, case Study 1b, Japan.  
 ### sim
-  - `fit_sim1.R` ... fits a hierarchical sigmoid model on `simdata1.RData`; outputs `post_sim1.RData`.   
-  - `fit_sim2.R` ... fits a hierarchical sigmoid model on `simdata2.RData`; outputs `post_sim2.RData`.
-  - `fit_sim3.R` ... fits an ICAR model on `simdata3.RData`; outputs `post_icar_sim3.RData`
-  - `simulate_icar.R` ... simulates non-parametric cyclical diffusion data; outputs `simdata3.RData.
-  - `simulate_sigmoid.R` ... simulates sigmoid diffusion data; outputs `simdata1.RData` and `simdata2.RData`
+  - `fit_sim1a.R` ... fits a hierarchical sigmoid model on `simdata1a.RData`; outputs `post_sim1a.RData`.   
+  - `fit_sim1b.R` ... fits a hierarchical sigmoid model on `simdata1b.RData`; outputs `post_sim1b.RData`.
+  - `fit_sim2.R` ... fits an ICAR model on `simdata2.RData`; outputs `post_icar_sim2.RData`
+  - `simulate_icar.R` ... simulates non-parametric cyclical diffusion data; outputs `simdata2.RData.
+  - `simulate_sigmoid.R` ... simulates sigmoid diffusion data; outputs `simdata1a.RData` and `simdata1b.RData`
   -  _simdata_
-     - `simdata1.RData` ... simulated dataset 1
+     - `simdata1a.RData` ... simulated dataset 1a
+     - `simdata1b.RData` ... simulated dataset 1b
      - `simdata2.RData` ... simulated dataset 2
-     - `simdata3.RData` ... simulated dataset 3
   -  _simdata_
-     - `post_sim1.RData` ... posterior estimates for the hierarchical sigmoid model, simulated dataset 1
-     - `post_sim2.RData` ... posterior estimates for the hierarchical sigmoid model, simulated dataset 2
-     - `post_icar_sim3.RData` ... posterior estimates for the ICAR model, simulated dataset 3
+     - `post_sim1a.RData` ... posterior estimates for the hierarchical sigmoid model, simulated dataset 1a
+     - `post_sim1b.RData` ... posterior estimates for the hierarchical sigmoid model, simulated dataset 1b
+     - `post_icar_sim2.RData` ... posterior estimates for the ICAR model, simulated dataset 2
 ### src
   - `utility.R` ... Variety of utility functions including for basic calculations, posterior predictive checks, and plotting.
 
@@ -128,6 +128,8 @@ loaded via a namespace (and not attached):
 ## Funding
 * ERC Starting Grant _Demography, Cultural Change, and the Diffusion of Rice and Millets during the Jomon-Yayoi transition in prehistoric Japan_ (ENCOUNTER) (Project N. 801953, PI: E. Crema).
 * Philip Leverhulme Prize (#PLP-2019–304 Awarded to: E.Crema)
+* NERC radiocarbon grant (#NF/2017/2/12, A. Bloxam, Awarded to: M.Parker Pearson)
+* LACHP AHRC Studentship (Awarded to: A. Bloxam)
   
 ## Licence
 CC-BY 3.0
