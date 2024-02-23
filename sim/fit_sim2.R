@@ -1,30 +1,27 @@
+library(here)
+library(nimble)
+library(rcarbon)
 library(nimbleCarbon)
 library(parallel)
-library(rcarbon)
-library(here)
+source(here('src','utility.R'))
 load(here('sim','simdata','simdata2.RData'))
+theta.init  <- medCal(calibrate(d$cra,d$cra_error))
+theta.init  <- ifelse(theta.init>constants$a-1,constants$a,theta.init)
+theta.init  <- ifelse(theta.init<constants$b+2,constants$b,theta.init)
 
-# Remove true parameter from constants
-constants$mu_k <- NULL
-constants$phi <- NULL
 
-# Inits
-caldates  <- calibrate(d$cra,constants$cra_error)
-theta  <- medCal(caldates)
-
-# Core Runscript  ----
-runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
+# Core runscript ----
+runFun  <- function(seed,d,constants,theta,nburnin,niter,thin)
 {
-	#Load R libraries
+	#Load libraries
 	library(nimbleCarbon)
-	library(truncnorm)
 
-	#Adoption model
-	adoptionModel  <- nimbleCode({
-		for (i in 1:N)
+	#Define model
+	adoptionICAR  <- nimbleCode({
+		for (i in 1:n)
 		{
 			y[i] ~ dbern(p[i]) #probability of event y
-			p[i]  <- k[siteID[i]]/(1+exp(r*(theta[i]-m))); #sigmoidal model
+			p[i]  <- pseq[theta.index[i]]
 
 
 			#Calibration of observed cra
@@ -34,71 +31,62 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 			cra[i] ~ dnorm(mean=mu[i],sd=sigma[i]);
 
 			# Prior for theta (flat)
-			theta[i] ~ dunif(1000,10000)
+			theta[i] ~ dunif(b,a)
+
+			# Round theta and assign to timeblock
+			theta.rnd[i]  <- round(theta[i]/res)*res
+			theta.index[i]  <- 1 + (a - theta.rnd[i])/res
 		}
 
-
-		r ~ dexp(100) # prior adoption rate
-		m ~ T(dnorm(mean=5500,sd=1000),1000,50000) #prior mid-point
-
-
-		for (j in 1:NSites)
+		for (j in 1:n.tblocks)
 		{
-# 			logk[j] ~ dnorm(mean=mu_k,sd=sigma_k)
-# 			k[j]  <- 1/(1+exp(-logk[j]))
-			k[j] ~ dbeta(beta0,beta1)
+			pseq[j] <- 1 /(1 + exp(-lpseq[j]))
 		}
 
-		mu_k ~ dbeta(2,2)
-# 		mu_k ~ dnorm(0,0.01)
-# 		sigma_k ~ dexp(1/50)
-# 		sigma_k ~ dexp(10)
-		phi  ~ dgamma(5,0.1)
-		beta0  <- mu_k * (phi) + 1
-		beta1  <- (1 - mu_k) * (phi) + 1
+		lpseq[1:n.tblocks] ~ dcar_normal(adj[1:L], weights[1:L], num[1:n.tblocks], tau, zero_mean = 0)
+		tau <- 1/sigmap^2
+		sigmap  ~ dexp(1)
+
 	})
 
-	#Define inits
+	# Setup Inits
+	set.seed(seed)
 	inits  <- list()
-	inits$r  <- 0.0001
-	inits$m  <- 5500
-	inits$mu_k  <- 0.5
-	inits$phi  <- 10
-	inits$k  <- rbeta(constants$NSites,(inits$mu_k*(inits$phi) +1),((1-inits$mu_k)*(inits$phi)+1))
-# 	inits$logk  <- rnorm(constants$NSites,inits$mu_k,inits$sigma_k)
 	inits$theta  <- theta
+	inits$sigma  <- rexp(1)
+	inits$lpseq  <- rnorm(constants$n.tblocks,0,0.5)
 
-	#Setup MCMC
-	fit.model  <- nimbleModel(adoptionModel,constants=constants,data=d,inits=inits)
-	cfit.model <- compileNimble(fit.model)
-	conf <- configureMCMC(fit.model)
+	# Setup MCMC
+	model  <- nimbleModel(adoptionICAR,constants=constants,inits=inits,data=d)
+	cModel <- compileNimble(model)
+	conf <- configureMCMC(model)
+	conf$addMonitors('pseq')
 	MCMC <- buildMCMC(conf)
 	cMCMC <- compileNimble(MCMC)
 
-	results <- runMCMC(cMCMC, niter = niter, thin=thin,nburnin = nburnin,samplesAsCodaMCMC = T, setSeed = seed)
+	#run model
+	results <- runMCMC(cMCMC, nchain=1,niter = niter, thin=thin, nburnin = nburnin,samplesAsCodaMCMC = T,setSeed=seed) 
 }
 
-# MCMC Setup ----
-niter  <- 1000000
+# Parallelisation Setup ----
+niter  <- 200000
+nburnin <- 100000
+thin  <- 4
 nchains  <- 4
-nburnin  <- niter/2
-thin  <- ceiling((niter-nburnin)/10000)
 cl  <- makeCluster(nchains)
 seeds  <- c(12,34,56,78)[1:nchains]
 
 # Run MCMC ----
-out  <- parLapply(cl=cl,X=seeds,fun=runFun,d=d,constants=constants,theta=theta,niter=niter,nburnin=nburnin,thin=thin)
+out  <- parLapply(cl=cl,X=seeds,fun=runFun,d=d,constants=constants,theta=theta.init,niter=niter,nburnin=nburnin,thin=thin)
 stopCluster(cl)
 
 # Diagnostic and Posterior Processing ----
-post.sample  <- coda::mcmc.list(out)
-rhats.sim2  <- coda::gelman.diag(post.sample)
-which(rhats.sim2[[1]][,1]>1.01) #Only theta
-
-# Combined output ----
-post.sample.combined  <- do.call(rbind.data.frame,post.sample)
-post.sample.theta  <- post.sample.combined[,grep('theta',colnames(post.sample.combined))]
-post.sample.core.sim2  <- post.sample.combined[,!grepl('theta|logk',colnames(post.sample.combined))]
-
+post.sample.sim2  <- coda::mcmc.list(out)
+rhats.sim2  <- coda::gelman.diag(post.sample.sim2)
+# rhats.sim3[[1]][1:36,1]
 # Store output ----
-save(rhats.sim2,post.sample.core.sim2,file=here('sim','results','post_sim2.RData'))
+post.sample.combined.icar.sim2  <- do.call(rbind.data.frame,post.sample.sim2)
+post.sample.combined.icar.sim2  <- post.sample.combined.icar.sim2[,grep('pseq',colnames(post.sample.combined.icar.sim2))]
+constants.icar.sim2  <- constants
+save(post.sample.combined.icar.sim3,constants.icar.sim2,file=here('sim','results','post_icar_sim2.RData'))
+

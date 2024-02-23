@@ -43,14 +43,14 @@ diffusionModel  <- nimbleCode({
 })
 
 
-# Simulation 1 (based on Case Study I - Japan) ----
+# Simulation 1a (based on Case Study 1a - Japan) ----
 # Model Parameters
 r  <- 0.01
 m  <- 2900
 mu_k  <- 0.65
 phi  <- 50
 
-true.param.1  <- list(r=r,m=m,mu_k=mu_k,phi=phi)
+true.param.1a  <- list(r=r,m=m,mu_k=mu_k,phi=phi)
 
 # Prior Settings for m
 midPrior  <- 3200
@@ -95,23 +95,23 @@ diffusionModel.sim$calculate('beta0')
 diffusionModel.sim$calculate('beta1')
 diffusionModel.sim$simulate('k')
 diffusionModel.sim$simulate('p')
-plot(sort(diffusionModel.sim$theta),diffusionModel.sim$p[order(diffusionModel.sim$theta)],xlim=c(4000,1700))
+# plot(sort(diffusionModel.sim$theta),diffusionModel.sim$p[order(diffusionModel.sim$theta)],xlim=c(4000,1700))
 diffusionModel.sim$simulate('y')
 
 # Store Output
 d  <- list()
 d$y  <- diffusionModel.sim$y
 d$cra  <- round(diffusionModel.sim$cra)
-save(constants,d,true.param.1,file=here('sim','simdata','simdata1.RData'))
+save(constants,d,true.param.1a,file=here('sim','simdata','simdata1a.RData'))
 
 
-# Simulation 2 (based on Case Study I - Britain) ----
+# Simulation 1b (based on Case Study 1b - Britain) ----
 # Model Parameters
 r  <- 0.008
 m  <- 4500
 mu_k  <- 0.8
 phi  <- 40
-true.param.2  <- list(r=r,m=m,mu_k=mu_k,phi=phi)
+true.param.1b  <- list(r=r,m=m,mu_k=mu_k,phi=phi)
 # Prior Settings for m
 midPrior  <- 3500
 midSD  <- 500
@@ -155,11 +155,11 @@ diffusionModel.sim$calculate('beta1')
 # diffusionModel.sim$simulate('logk')
 diffusionModel.sim$simulate('k')
 diffusionModel.sim$simulate('p')
-plot(sort(diffusionModel.sim$theta),diffusionModel.sim$p[order(diffusionModel.sim$theta)],xlim=c(7000,3000))
+# plot(sort(diffusionModel.sim$theta),diffusionModel.sim$p[order(diffusionModel.sim$theta)],xlim=c(7000,3000))
 diffusionModel.sim$simulate('y')
 
 # Store Output
 d  <- list()
 d$y  <- diffusionModel.sim$y
 d$cra  <- round(diffusionModel.sim$cra)
-save(constants,d,true.param.2,file=here('sim','simdata','simdata2.RData'))
+save(constants,d,true.param.1b,file=here('sim','simdata','simdata1b.RData'))

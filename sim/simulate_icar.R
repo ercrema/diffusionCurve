@@ -50,4 +50,4 @@ constants$L  <- length(constants$adj)
 
 d <- list(y=sim.d$x,cra=sim.d$c14age,cra_error=rep(20,n))
 
-save(Pseq,timeRange,d,constants,file=here('sim','simdata','simdata3.RData'))
+save(Pseq,timeRange,d,constants,file=here('sim','simdata','simdata2.RData'))

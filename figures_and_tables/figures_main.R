@@ -17,12 +17,12 @@ load(here('results','post_jp_abot.RData'))
 load(here('results','ppc_gb_abot.RData'))
 load(here('results','post_gb_abot.RData'))
 load(here('results','post_icar_burial.RData'))
-load(here('sim','simdata','simdata1.RData'))
+load(here('sim','simdata','simdata1a.RData'))
+load(here('sim','simdata','simdata1b.RData'))
 load(here('sim','simdata','simdata2.RData'))
-load(here('sim','simdata','simdata3.RData'))
-load(here('sim','results','post_sim1.RData'))
-load(here('sim','results','post_sim2.RData'))
-load(here('sim','results','post_icar_sim3.RData'))
+load(here('sim','results','post_sim1a.RData'))
+load(here('sim','results','post_sim1b.RData'))
+load(here('sim','results','post_icar_sim2.RData'))
 
 
 # Figure 1 (Distribution Maps) ----
@@ -78,36 +78,36 @@ box()
 
 dev.off()
 
-# Figure 2 (Fitted model, simulations 1-3) ----
+# Figure 2 (Fitted model, simulations 1a,1b, and 2) ----
 pdf(file = here('figures_and_tables','figure2.pdf'),width=3.5,height=4.5,pointsize=9)
 par(mfrow=c(3,1),mar=c(4,3.5,0.3,0.1),lend=2)
 
-plot.fitted(r=post.sample.core.sim1[,'r'],m=post.sample.core.sim1[,'m'],mu_k=post.sample.core.sim1[,'mu_k'],timeRange=c(4000,1700),calendar = 'BCAD',xlab='',ylab='')
+plot.fitted(r=post.sample.core.sim1a[,'r'],m=post.sample.core.sim1a[,'m'],mu_k=post.sample.core.sim1a[,'mu_k'],timeRange=c(4000,1700),calendar = 'BCAD',xlab='',ylab='')
 mtext('BCE/CE',side=1,line=2.2,cex=0.7)
 mtext('Proportion',side=2,line=2.2,cex=0.7)
-lines(4000:1700,sigmoid(x=4000:1700,m=true.param.1$m,k=true.param.1$mu_k,r=true.param.1$r),lty=3,col=2,lwd=2)
+lines(4000:1700,sigmoid(x=4000:1700,m=true.param.1a$m,k=true.param.1a$mu_k,r=true.param.1a$r),lty=3,col=2,lwd=2)
 legend('topright',legend=c('a'),bty='n',cex=1.2)
 
 
-plot.fitted(r=post.sample.core.sim2[,'r'],m=post.sample.core.sim2[,'m'],mu_k=post.sample.core.sim2[,'mu_k'],timeRange=c(7000,3000),calendar = 'BCAD',xlab='',ylab='')
+plot.fitted(r=post.sample.core.sim1b[,'r'],m=post.sample.core.sim1b[,'m'],mu_k=post.sample.core.sim1b[,'mu_k'],timeRange=c(7000,3000),calendar = 'BCAD',xlab='',ylab='')
 mtext('BCE',side=1,line=2.2,cex=0.7)
 mtext('Proportion',side=2,line=2.2,cex=0.7)
-lines(7000:3000,sigmoid(x=7000:3000,m=true.param.2$m,k=true.param.2$mu_k,r=true.param.2$r),lty=3,col=2,lwd=2)
+lines(7000:3000,sigmoid(x=7000:3000,m=true.param.1b$m,k=true.param.1b$mu_k,r=true.param.1b$r),lty=3,col=2,lwd=2)
 legend(x=7000,y=1,legend=c('Model','Posterior Mean','95% HPD'),lty=c(3,2,1),col=c(2,1,'lightblue'),lwd=c(1.5,1.5,4),bty='n')
 legend('topright',legend=c('b'),bty='n',cex=1.2)
 
 
-tblocks.sim3 <- seq(constants.icar.sim3$a,constants.icar.sim3$b,by=-constants.icar.sim3$res)
-plot(tblocks.sim3,apply(post.sample.combined.icar.sim3[,1:constants.icar.sim3$n.tblocks],2,mean),pch=20,xlim=c(constants.icar.sim3$a,constants.icar.sim3$b),ylim=c(0,1),type='n',xlab='',ylab='',axes=F)
+tblocks.sim2 <- seq(constants.icar.sim2$a,constants.icar.sim2$b,by=-constants.icar.sim2$res)
+plot(tblocks.sim2,apply(post.sample.combined.icar.sim2[,1:constants.icar.sim2$n.tblocks],2,mean),pch=20,xlim=c(constants.icar.sim2$a,constants.icar.sim2$b),ylim=c(0,1),type='n',xlab='',ylab='',axes=F)
 mtext('BCE',side=1,line=2.2,cex=0.7)
 mtext('Proportion',side=2,line=2.2,cex=0.7)
-for (i in 1:constants.icar.sim3$n.tblocks)
+for (i in 1:constants.icar.sim2$n.tblocks)
 {
-	rect(xleft=tblocks.sim3[i]+45,xright=tblocks.sim3[i]-45,ybottom=quantile(post.sample.combined.icar.sim3[,i],0.025),ytop=quantile(post.sample.combined.icar.sim3[,i],0.975),border=NA,col='lightblue')
-	rect(xleft=tblocks.sim3[i]+45,xright=tblocks.sim3[i]-45,ybottom=quantile(post.sample.combined.icar.sim3[,i],0.25),ytop=quantile(post.sample.combined.icar.sim3[,i],0.75),border=NA,col='steelblue')
+	rect(xleft=tblocks.sim2[i]+45,xright=tblocks.sim2[i]-45,ybottom=quantile(post.sample.combined.icar.sim2[,i],0.025),ytop=quantile(post.sample.combined.icar.sim2[,i],0.975),border=NA,col='lightblue')
+	rect(xleft=tblocks.sim2[i]+45,xright=tblocks.sim2[i]-45,ybottom=quantile(post.sample.combined.icar.sim2[,i],0.25),ytop=quantile(post.sample.combined.icar.sim2[,i],0.75),border=NA,col='steelblue')
 
 }
-lines(tblocks.sim3,apply(post.sample.combined.icar.sim3[,1:constants.icar.sim3$n.tblocks],2,mean),pch=20,type='b')
+lines(tblocks.sim2,apply(post.sample.combined.icar.sim2[,1:constants.icar.sim2$n.tblocks],2,mean),pch=20,type='b')
 lines(timeRange[1]:timeRange[2],Pseq,col=2,lty=3,lwd=2)
 legend(x=4950,y=1.05,legend=c('Model','Posterior Mean','95% HPD','50% HPD'),pch=c(NA,20,NA,NA),lty=c(3,1,1,1),col=c(2,1,'lightblue','steelblue'),lwd=c(1.5,1.5,4,4),bty='n')
 legend('topright',legend=c('c'),bty='n',cex=1.2)
