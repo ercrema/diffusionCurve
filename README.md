@@ -2,7 +2,8 @@
 
 This repository contains data and scripts used in the manuscript:
 
-Crema, E.R., Bloxam, A., Stevens, C.J., Vander Linden, M. (2023). Modelling Diffusion of Innovation Curves using Radiocarbon Data
+Crema, E.R., Bloxam, A., Stevens, C.J., Vander Linden, M. (2024). Modelling Diffusion of Innovation Curves using Radiocarbon Data. Journal of Archaeological Science. 	
+https://doi.org/10.1016/j.jas.2024.105962 
 
 The repository is organised into the following six main directories:
 
