@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/362252625.svg)](https://zenodo.org/doi/10.5281/zenodo.10782942)
+
 # Data and R scripts for the manuscript 'Modelling Diffusion of Innovation Curves using Radiocarbon Data'
 
 This repository contains data and scripts used in the manuscript:
