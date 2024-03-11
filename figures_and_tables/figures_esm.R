@@ -6,8 +6,8 @@ library(emdbook)
 library(coda)
 
 # Figure S1 ----
-load(here('sim','simdata','simdata1.RData'))
-load(here('sim','results','post_sim1.RData'))
+load(here('sim','simdata','simdata1a.RData'))
+load(here('sim','results','post_sim1a.RData'))
 
 pdf(file=here('figures_and_tables','figureS1.pdf'),width=7,height=7)
 layout(matrix(c(1,2,3,4,5,10,14,15,16,6,20,11,17,18,7,20,20,12,19,8,20,20,20,13,9),nrow=5,ncol=5),width=c(0.1,1,1,1,1),height=c(1,1,1,1,0.1))
@@ -31,22 +31,22 @@ label.plot(TeX(r'($\mu$)'))
 label.plot(TeX(r'($\varphi$)'))
 
 par(mar=c(2,2,2,2))
-postHPDplot(post.sample.core.sim1$r,xlab='',ylab='',axes=F)
+postHPDplot(post.sample.core.sim1a$r,xlab='',ylab='',axes=F)
 axis(1,line=0,padj=-1,tck=-0.05,cex.axis=0.8)
-abline(v=true.param.1$r,lty=2,col=2)
-postHPDplot(post.sample.core.sim1$m,xlab='',ylab='',axes=F)
+abline(v=true.param.1a$r,lty=2,col=2)
+postHPDplot(post.sample.core.sim1a$m,xlab='',ylab='',axes=F)
 axis(1,line=0,padj=-1,tck=-0.05,cex.axis=0.8)
-abline(v=true.param.1$m,lty=2,col=2)
-postHPDplot(post.sample.core.sim1$mu_k,xlab='',ylab='',axes=F)
+abline(v=true.param.1a$m,lty=2,col=2)
+postHPDplot(post.sample.core.sim1a$mu_k,xlab='',ylab='',axes=F)
 axis(1,line=0,padj=-1,tck=-0.05,cex.axis=0.8)
-abline(v=true.param.1$mu_k,lty=2,col=2)
-postHPDplot(post.sample.core.sim1$phi,xlab='',ylab='',axes=F)
+abline(v=true.param.1a$mu_k,lty=2,col=2)
+postHPDplot(post.sample.core.sim1a$phi,xlab='',ylab='',axes=F)
 axis(1,line=0,padj=-1,tck=-0.05,cex.axis=0.8)
-abline(v=true.param.1$phi,lty=2,col=2)
+abline(v=true.param.1a$phi,lty=2,col=2)
 
 
-post.sample.core.sim1  <- post.sample.core.sim1[,c('r','m','mu_k','phi')]
-true.param.1 <- true.param.1[c('r','m','mu_k','phi')]
+post.sample.core.sim1a  <- post.sample.core.sim1a[,c('r','m','mu_k','phi')]
+true.param.1a <- true.param.1a[c('r','m','mu_k','phi')]
 
 
 for (i in 1:4)
@@ -54,9 +54,9 @@ for (i in 1:4)
 	for (j in 1:4)
 	{
 		if (j>i){
-			plot(post.sample.core.sim1[,i],post.sample.core.sim1[,j],pch=1,col=rgb(0.67,0.84,0.9,0.1))
-			HPDregionplot(mcmc(post.sample.core.sim1[,c(i,j)]),add=TRUE,prob=c(0.5,0.95),n=100,lty=c(1,2))
-			points(true.param.1[i],true.param.1[j],pch="+",col='red',cex=1.5)
+			plot(post.sample.core.sim1a[,i],post.sample.core.sim1a[,j],pch=1,col=rgb(0.67,0.84,0.9,0.1))
+			HPDregionplot(mcmc(post.sample.core.sim1a[,c(i,j)]),add=TRUE,prob=c(0.5,0.95),n=100,lty=c(1,2))
+			points(true.param.1a[i],true.param.1a[j],pch="+",col='red',cex=1.5)
 		}
 	}
 }
@@ -66,8 +66,8 @@ dev.off()
 
 
 # Figure S2 ----
-load(here('sim','simdata','simdata2.RData'))
-load(here('sim','results','post_sim2.RData'))
+load(here('sim','simdata','simdata1b.RData'))
+load(here('sim','results','post_sim1b.RData'))
 
 pdf(file=here('figures_and_tables','figureS2.pdf'),width=7,height=7)
 layout(matrix(c(1,2,3,4,5,10,14,15,16,6,20,11,17,18,7,20,20,12,19,8,20,20,20,13,9),nrow=5,ncol=5),width=c(0.1,1,1,1,1),height=c(1,1,1,1,0.1))
@@ -91,31 +91,31 @@ label.plot(TeX(r'($\mu$)'))
 label.plot(TeX(r'($\varphi$)'))
 
 par(mar=c(2,2,2,2))
-postHPDplot(post.sample.core.sim2$r,xlab='',ylab='',axes=F)
+postHPDplot(post.sample.core.sim1b$r,xlab='',ylab='',axes=F)
 axis(1,line=0,padj=-1,tck=-0.05,cex.axis=0.8)
-abline(v=true.param.2$r,lty=2,col=2)
-postHPDplot(post.sample.core.sim2$m,xlab='',ylab='',axes=F)
+abline(v=true.param.1b$r,lty=2,col=2)
+postHPDplot(post.sample.core.sim1b$m,xlab='',ylab='',axes=F)
 axis(1,line=0,padj=-1,tck=-0.05,cex.axis=0.8)
-abline(v=true.param.2$m,lty=2,col=2)
-postHPDplot(post.sample.core.sim2$mu_k,xlab='',ylab='',axes=F)
+abline(v=true.param.1b$m,lty=2,col=2)
+postHPDplot(post.sample.core.sim1b$mu_k,xlab='',ylab='',axes=F)
 axis(1,line=0,padj=-1,tck=-0.05,cex.axis=0.8)
-abline(v=true.param.2$mu_k,lty=2,col=2)
-postHPDplot(post.sample.core.sim2$phi,xlab='',ylab='',axes=F)
+abline(v=true.param.1b$mu_k,lty=2,col=2)
+postHPDplot(post.sample.core.sim1b$phi,xlab='',ylab='',axes=F)
 axis(1,line=0,padj=-1,tck=-0.05,cex.axis=0.8)
-abline(v=true.param.2$phi,lty=2,col=2)
+abline(v=true.param.1b$phi,lty=2,col=2)
 
 
-post.sample.core.sim2  <- post.sample.core.sim2[,c('r','m','mu_k','phi')]
-true.param.2 <- true.param.2[c('r','m','mu_k','phi')]
+post.sample.core.sim1b  <- post.sample.core.sim1b[,c('r','m','mu_k','phi')]
+true.param.1b <- true.param.1b[c('r','m','mu_k','phi')]
 
 for (i in 1:4)
 {
 	for (j in 1:4)
 	{
 		if (j>i){
-			plot(post.sample.core.sim2[,i],post.sample.core.sim2[,j],pch=1,col=rgb(0.67,0.84,0.9,0.1))
-			HPDregionplot(mcmc(post.sample.core.sim2[,c(i,j)]),add=TRUE,prob=c(0.5,0.95),n=100,lty=c(1,2))
-			points(true.param.2[i],true.param.2[j],pch="+",col='red',cex=1.5)
+			plot(post.sample.core.sim1b[,i],post.sample.core.sim1b[,j],pch=1,col=rgb(0.67,0.84,0.9,0.1))
+			HPDregionplot(mcmc(post.sample.core.sim1b[,c(i,j)]),add=TRUE,prob=c(0.5,0.95),n=100,lty=c(1,2))
+			points(true.param.1b[i],true.param.1b[j],pch="+",col='red',cex=1.5)
 		}
 	}
 }
@@ -166,7 +166,6 @@ axis(1,line=0,padj=-1,tck=-0.05,cex.axis=0.8)
 
 
 post.sample.core.jp.abot  <- post.sample.core.jp.abot[,c('r','m','mu_k','phi')]
-true.param.1 <- true.param.1[c('r','m','mu_k','phi')]
 
 
 for (i in 1:4)
@@ -228,7 +227,6 @@ axis(1,line=0,padj=-1,tck=-0.05,cex.axis=0.8)
 
 
 post.sample.core.gb.abot  <- post.sample.core.gb.abot[,c('r','m','mu_k','phi')]
-true.param.1 <- true.param.1[c('r','m','mu_k','phi')]
 
 
 for (i in 1:4)
