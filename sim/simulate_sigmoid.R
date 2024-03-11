@@ -28,18 +28,10 @@ diffusionModel  <- nimbleCode({
 	m ~ T(dnorm(mean=midPrior,sd=midSD),1000,50000) #prior mid-point
 	for (j in 1:NSites)
 	{
-# 		logk[j] ~ dnorm(mean=mu_k,sd=sigma_k) #prior site
-# 		k[j]  <- 1/(1+exp(-logk[j])) 
 		k[j] ~ dbeta(beta0,beta1)
 	}
-# 	mu_k ~ dnorm(0,1) #hyperprior for site prior
-# 	sigma_k ~ dexp(10)
-# 	mu_k ~ dbeta(2,2) #Unimodal shape with low prob on 0 and 1
-# 	sigma_k ~ dnorm(0,0.0001)
-# 	tau  <- 1/sqrt(sigma_k) 
 	beta0  <- mu_k * phi + 1
 	beta1  <- (1-mu_k) * phi + 1
-# 	sigma_k ~ dinvgamma(5,5) #hyperprior for site prior
 })
 
 
@@ -84,18 +76,14 @@ set.seed(seed)
 diffusionModel.sim$theta  <- round(runif(constants$N,min=end,max=begin)) #Random true dates uniformly within time-window
 diffusionModel.sim$r  <- r
 diffusionModel.sim$m  <- m
-# diffusionModel.sim$mu_k  <- mu_k
-# diffusionModel.sim$sigma_k  <- sigma_k
 diffusionModel.sim$simulate('mu')
 diffusionModel.sim$simulate('sigmaCurve')
 diffusionModel.sim$simulate('sigma')
 diffusionModel.sim$simulate('cra')
-# diffusionModel.sim$simulate('logk')
 diffusionModel.sim$calculate('beta0')
 diffusionModel.sim$calculate('beta1')
 diffusionModel.sim$simulate('k')
 diffusionModel.sim$simulate('p')
-# plot(sort(diffusionModel.sim$theta),diffusionModel.sim$p[order(diffusionModel.sim$theta)],xlim=c(4000,1700))
 diffusionModel.sim$simulate('y')
 
 # Store Output
@@ -144,18 +132,14 @@ set.seed(seed)
 diffusionModel.sim$theta  <- round(runif(constants$N,min=end,max=begin)) #Random true dates uniformly within time-window
 diffusionModel.sim$r  <- r
 diffusionModel.sim$m  <- m
-# diffusionModel.sim$mu_k  <- mu_k
-# diffusionModel.sim$sigma_k  <- sigma_k
 diffusionModel.sim$simulate('mu')
 diffusionModel.sim$simulate('sigmaCurve')
 diffusionModel.sim$simulate('sigma')
 diffusionModel.sim$simulate('cra')
 diffusionModel.sim$calculate('beta0')
 diffusionModel.sim$calculate('beta1')
-# diffusionModel.sim$simulate('logk')
 diffusionModel.sim$simulate('k')
 diffusionModel.sim$simulate('p')
-# plot(sort(diffusionModel.sim$theta),diffusionModel.sim$p[order(diffusionModel.sim$theta)],xlim=c(7000,3000))
 diffusionModel.sim$simulate('y')
 
 # Store Output

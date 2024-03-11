@@ -44,15 +44,10 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 
 		for (j in 1:NSites)
 		{
-# 			logk[j] ~ dnorm(mean=mu_k,sd=sigma_k)
-# 			k[j]  <- 1/(1+exp(-logk[j]))
 			k[j] ~ dbeta(beta0,beta1)
 		}
 
 		mu_k ~ dbeta(2,2)
-# 		mu_k ~ dnorm(0,0.01)
-# 		sigma_k ~ dexp(1/50)
-# 		sigma_k ~ dexp(10)
 		phi  ~ dgamma(5,0.1)
 		beta0  <- mu_k * (phi) + 1
 		beta1  <- (1 - mu_k) * (phi) + 1
@@ -65,7 +60,6 @@ runFun  <- function(seed, d, constants, theta, init, nburnin, niter, thin)
 	inits$mu_k  <- 0.5
 	inits$phi  <- 10
 	inits$k  <- rbeta(constants$NSites,(inits$mu_k*(inits$phi) +1),((1-inits$mu_k)*(inits$phi)+1))
-# 	inits$logk  <- rnorm(constants$NSites,inits$mu_k,inits$sigma_k)
 	inits$theta  <- theta
 
 	#Setup MCMC
@@ -98,7 +92,7 @@ which(rhats.sim1b[[1]][,1]>1.01) #Only theta
 # Combined output ----
 post.sample.combined  <- do.call(rbind.data.frame,post.sample)
 post.sample.theta  <- post.sample.combined[,grep('theta',colnames(post.sample.combined))]
-post.sample.core.sim2  <- post.sample.combined[,!grepl('theta|logk',colnames(post.sample.combined))]
+post.sample.core.sim1b  <- post.sample.combined[,!grepl('theta|logk',colnames(post.sample.combined))]
 
 # Store output ----
 save(rhats.sim1b,post.sample.core.sim1b,file=here('sim','results','post_sim1b.RData'))

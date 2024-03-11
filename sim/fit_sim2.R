@@ -88,5 +88,5 @@ rhats.sim2  <- coda::gelman.diag(post.sample.sim2)
 post.sample.combined.icar.sim2  <- do.call(rbind.data.frame,post.sample.sim2)
 post.sample.combined.icar.sim2  <- post.sample.combined.icar.sim2[,grep('pseq',colnames(post.sample.combined.icar.sim2))]
 constants.icar.sim2  <- constants
-save(post.sample.combined.icar.sim3,constants.icar.sim2,file=here('sim','results','post_icar_sim2.RData'))
+save(post.sample.combined.icar.sim2,constants.icar.sim2,file=here('sim','results','post_icar_sim2.RData'))
 
